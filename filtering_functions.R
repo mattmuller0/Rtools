@@ -306,30 +306,3 @@ detect_wbc <- function(dds, outpath, group = NULL) {
 
   return(dds)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#======================== END ========================#
-save.image(file.path(outdir, "image.RData"))
-
-sink(file.path(outdir, "session.log"))
-sessionInfo()
-sink()
