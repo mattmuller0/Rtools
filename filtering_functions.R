@@ -8,9 +8,15 @@
 # Script Name: expr_filtering_functions
 
 #======================== LIBRARIES ========================#
-packages <- c("lintr", "httpgd", "languageserver", "devtools", "sys", "dplyr", "tidyverse", "ggplot2", "ggpubr", "SummarizedExperiment")
-pkgs <- lapply(packages, function(x) suppressMessages(require(x, character.only=T,quietly=T))) # nolint
-print(packages[!sapply(pkgs, isTRUE)])
+library(lintr) #nolint
+library(httpgd) #nolint
+library(languageserver) #nolint
+library(devtools)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(SummarizedExperiment)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
