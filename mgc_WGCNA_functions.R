@@ -9,8 +9,8 @@ packagelist = c("WGCNA", "tools", "blacksheepr", "devtools")
 junk <- lapply(packagelist, function(xxx) suppressMessages(
     require(xxx, character.only = TRUE,quietly=TRUE,warn.conflicts = FALSE)))
 
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/mgc_plotting_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/mgc_geneset_analysis_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/mgc_plotting_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/mgc_geneset_analysis_functions.R')
 
 # # INPUT
 # # counttable - the normalized counttable to derive modules from

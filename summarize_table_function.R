@@ -6,7 +6,7 @@
 
 # Get the functions from github
 library(devtools)
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/mgc_plotting_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/mgc_plotting_functions.R')
 
 
 ## EXAMPLE

@@ -43,10 +43,10 @@ for (pkg in packages) {
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
 
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/stats_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/deseq_helper_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/geneset_creation_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/deseq_helper_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/geneset_creation_functions.R')
 
 ###########################################################################
 #

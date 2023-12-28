@@ -9,10 +9,10 @@ packagelist = c("NMF", "Hmisc", "tools", "caret", "blacksheepr", "mlbench", "car
 junk <- lapply(packagelist, function(xxx) suppressMessages(
     require(xxx, character.only = TRUE,quietly=TRUE,warn.conflicts = FALSE)))
 
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/mgc_plotting_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/mgc_plotting_functions.R')
 # source("/Users/tosh/Desktop/Ruggles_Lab/code/process_metadata_functions.R")
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/mgc_survival_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/mgc_WGCNA_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/mgc_survival_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/mgc_WGCNA_functions.R')
 
 # --------------------------------- Add on and edit the biorep table --------------------------------- 
 

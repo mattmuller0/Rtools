@@ -37,7 +37,7 @@ for (pkg in packages) {
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/general_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
 
 ###########################################################################
 #

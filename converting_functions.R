@@ -9,18 +9,13 @@
 # 
 
 # LOAD LIBRARIES ------------------------------------------
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "clusterProfiler",
-  "org.Hs.eg.db",
-  "DESeq2"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T) # nolint
-}
+library(tidyverse)
+library(glue)
+library(ggplot2)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+library(DESeq2)
 
 #======================== ID Conversions ========================#
 # Function to map gene IDs with annotationDbi

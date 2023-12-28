@@ -10,18 +10,9 @@
 
 
 # LOAD LIBRARIES ------------------------------------------
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "NMF"
-)
-
-for (pkg in packages) {suppressPackageStartupMessages(library(pkg, character.only = T, quietly = T))}
-
-# LOAD FUNCTIONS ------------------------------------------
-# space reserved for sourcing in functions
-
-
+library(tidyverse)
+library(glue)
+library(ggplot2)
 
 # CODE BLOCK ----------------------------------------------
 

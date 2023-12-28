@@ -43,9 +43,9 @@ for (pkg in packages) {suppressPackageStartupMessages(library(pkg, character.onl
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
 
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/converting_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/plotting_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/scripts/main/Rtools/stats_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
+source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
 
 ###########################################################################
 #

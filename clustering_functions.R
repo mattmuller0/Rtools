@@ -10,21 +10,10 @@
 
 
 # LOAD LIBRARIES ------------------------------------------
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "NMF"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T) # nolint
-}
-
-# LOAD FUNCTIONS ------------------------------------------
-# space reserved for sourcing in functions
-
-
+library(tidyverse)
+library(glue)
+library(ggplot2)
+library(NMF)
 
 # CODE BLOCK ----------------------------------------------
 # Add code here

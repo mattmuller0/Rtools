@@ -9,13 +9,6 @@
 # So this is all the gene ratio stuff I've been working with.
 # Now I'm trying to just bring them all to one spot
 
-# SET WORKING DIRECTORY -----------------------------------
-wd <- FALSE
-if (wd != FALSE) {
-  setwd(wd)
-  cat("WORKING DIRECTORY HAS BEEN SET TO: ", wd, sep = "")
-  }
-
 # LOAD LIBRARIES ------------------------------------------
 packages <- c(
   "tidyverse",
