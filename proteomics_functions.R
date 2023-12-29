@@ -185,7 +185,6 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
     umap_outliers <- umap_outliers$outliers %>% filter(Outlier == 1) %>% pull(SampleID)
     outliers <- unique(c(qc_outliers, pca_outliers, umap_outliers))
     write.csv(outliers, glue('{outdir}/sample_outliers.csv'), row.names = F)
-    print(outliers)
 
     # proteins that are below the LOD
     message('Getting proteins below the LOD')
