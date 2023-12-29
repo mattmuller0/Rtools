@@ -184,16 +184,19 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
     pca_outliers <- pca_outliers$outliers %>% pull(SampleID)
     umap_outliers <- umap_outliers$outliers %>% filter(Outlier == 1) %>% pull(SampleID)
     outliers <- unique(c(qc_outliers, pca_outliers, umap_outliers))
+    write.csv(outliers, glue('{outdir}/sample_outliers.csv'), row.names = F)
     print(outliers)
 
     # proteins that are below the LOD
     message('Getting proteins below the LOD')
     lod_outliers <- lod_qc$outliers %>% pull(Assay) %>% unique()
+    write.csv(lod_outliers, glue('{outdir}/protein_outliers.csv'), row.names = F)
 
     # remove the outliers
     data %<>% filter(!grepl(paste(outliers, collapse = "|"), SampleID))
     # remove the proteins that are below the LOD
     data %<>% filter(!grepl(paste(lod_outliers, collapse = "|"), Assay))
+    write.csv(data, glue('{outdir}/npx_data.csv'), row.names = F)
 
     # get the count table
     count_table <- olink_count_table(data)
