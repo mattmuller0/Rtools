@@ -125,7 +125,7 @@ olink_lod_qc <- function(data, outdir, plot = TRUE) {
     #     dplyr::group_by(Assay) %>%
     #     dplyr::summarise(n_pass = sum(LOD_QC) / n()) %>%
     #     dplyr::filter(n_pass < 0.75) 
-    outliers <- lod %>% dplyr::filter(MissingFreq < 0.25)
+    outliers <- lod %>% dplyr::filter(MissingFreq > 0.25)
 
     # return the proteins that fail the LOD
     out <- list(lod = lod, outliers = outliers)
@@ -160,7 +160,7 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
     dir.create(outdir, showWarnings = F)
     # get the sample info
     message('Getting sample info')
-    sample_info <- olink_info(data)
+    sample_info <- do.call(olink_info, list(data))
     writeLines(glue("{names(sample_info)}: {sample_info}\n"), file.path(outdir, "sampleIDs.txt"))
 
     # get the pca outliers
@@ -188,7 +188,7 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
 
     # proteins that are below the LOD
     message('Getting proteins below the LOD')
-    lod_outliers <- lod_qc$outliers %>% pull(Assay)
+    lod_outliers <- lod_qc$outliers %>% pull(Assay) %>% unique()
 
     # remove the outliers
     data %<>% filter(!grepl(paste(outliers, collapse = "|"), SampleID))
@@ -203,5 +203,32 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
     message('Done filtering')
     out <- list(data = data, count_table = count_table, outliers = outliers, lod_outliers = lod_outliers)
 
+    return(out)
+}
+
+# Function to run differential expression and pathway analysis
+# Arguments:
+#   data: data frame of olink data
+#   condition: condition column
+#   outdir: output directory
+#   de_args: arguments to pass to differential expression function
+#   gsea_args: arguments to pass to pathway analysis function
+# Outputs:
+#   list of differential expression and pathway analysis results
+olink_analysis <- function(data, condition, outdir, de_args = list(), gsea_args = list()) {
+    dir.create(outdir, showWarnings = F)
+    # get the differential expression
+    message('Running differential expression')
+    de <- olink_de(data, condition, outdir = file.path(outdir, 'de'), ...)
+    saveRDS(de, glue('{outdir}/de/de.rds'))
+
+    # get the pathway analysis
+    message('Running pathway analysis')
+    gsea <- olink_gsea(de, outdir = file.path(outdir, 'gsea'), ...)
+    saveRDS(gsea, glue('{outdir}/gsea/gsea.rds'))
+
+    # return the results
+    message('Done with analysis')
+    out <- list(de = de, gsea = gsea)
     return(out)
 }
