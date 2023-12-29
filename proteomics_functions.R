@@ -105,31 +105,30 @@ olink_umap_outliers <- function(data, outdir, outlierDefX = 2.5, outlierDefY = 4
 }
 
 # Function test level of detection (LOD) for each protein
-olink_lod_qc <- function(data, outdir) {
+olink_lod_qc <- function(data, outdir, plot = TRUE) {
     dir.create(outdir, showWarnings = F)
     # get the lod
     lod <- data %>% dplyr::mutate(LOD_QC = NPX > LOD)
+    write.csv(lod, glue('{outdir}/lod_qc.csv'), row.names = F)
     
     # plot the NPX facet wrappped by Assay and colored by LOD_QC
-    p <- ggplot(lod, aes(x = NPX, fill = LOD_QC)) +
-        geom_histogram(bins = 100) +
-        facet_wrap(~Assay, scales = 'free') +
-        theme_bw() +
-        theme(legend.position = 'bottom')
-    ggsave(glue('{outdir}/npx_hist.pdf'), p, width = 45, height = 25)
+    if (plot) {
+        p <- ggplot(lod, aes(x = NPX, fill = LOD_QC)) +
+            geom_histogram(bins = 100) +
+            facet_wrap(~Assay, scales = 'free') +
+            theme_bw() +
+            theme(legend.position = 'bottom')
+        ggsave(glue('{outdir}/npx_hist.pdf'), p, width = 45, height = 25)
+    }
 
-    # get the number of proteins that pass the LOD
-    n_pass <- lod %>% dplyr::filter(LOD_QC == TRUE) %>% dplyr::select(Assay) %>% unique() %>% nrow()
-    message(glue('Number of proteins that pass the LOD: {n_pass}'))
-    # get the number of proteins that fail the LOD
-    n_fail <- lod %>% dplyr::filter(LOD_QC == FALSE) %>% dplyr::select(Assay) %>% unique() %>% nrow()
-    message(glue('Number of proteins that fail the LOD: {n_fail}'))
-
-    # write out the lod data
-    write.csv(lod, glue('{outdir}/lod_qc.csv'), row.names = F)
+    # proteins that fail the LOD in more than 75% of samples
+    outliers <- lod %>%
+        dplyr::group_by(Assay) %>%
+        dplyr::summarise(n_pass = sum(LOD_QC) / n()) %>%
+        dplyr::filter(n_pass < 0.75) 
 
     # return the proteins that fail the LOD
-    out <- list(lod = lod, n_pass = n_pass, n_fail = n_fail, qc_plot = p)
+    out <- list(lod = lod, outliers = outliers)
     return(out)
 }
 
@@ -152,4 +151,56 @@ olink_count_table <- function(data, sampleID = 'SampleID', assay = 'Assay', valu
         # remove the sample ID
         column_to_rownames(sampleID)
     return(count_table)
+}
+
+# Function to do olink filtering
+# Arguments:
+#   data: data frame of olink data
+olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(), lod_args = list()) {
+    dir.create(outdir, showWarnings = F)
+    # get the sample info
+    message('Getting sample info')
+    sample_info <- olink_info(data)
+    writeLines(glue("{names(sample_info)}: {sample_info}\n"), file.path(outdir, "sampleIDs.txt"))
+
+    # get the pca outliers
+    message('Getting PCA outliers')
+    pca_outliers <- do.call(olink_pca_outliers, c(list(data = data, outdir = outdir), pca_args))
+    saveRDS(pca_outliers, glue('{outdir}/pca/pca_outliers.rds'))
+
+    # get the umap outliers
+    message('Getting UMAP outliers')
+    umap_outliers <- do.call(olink_umap_outliers, c(list(data = data, outdir = outdir), umap_args))
+    saveRDS(umap_outliers, glue('{outdir}/umap/umap_outliers.rds'))
+
+    # get the lod qc
+    message('Getting LOD QC')
+    lod_qc <- do.call(olink_lod_qc, c(list(data = data, outdir = outdir), lod_args))
+    saveRDS(lod_qc, glue('{outdir}/lod/lod_qc.rds'))
+
+    # get the outliers
+    pca_outliers <- olink_pca$outliers %>% pull(SampleID)
+    qc_outliers <- data %>% filter(QC_Warning == "WARN") %>% pull(SampleID) %>% unique()
+    qc_plot_outliers <- qc_plot$data %>% filter(Outlier == 1) %>% pull(SampleID)
+    outliers <- unique(c(pca_outliers, qc_outliers, qc_plot_outliers))
+
+    # proteins that are below the LOD
+    message('Getting proteins below the LOD')
+    lod_outliers <- lod_qc$outliers %>% pull(Assay)
+
+    # remove the outliers
+    data %<>% filter(!grepl(paste(outliers, collapse = "|"), SampleID))
+
+    # remove the proteins that are below the LOD
+    data %<>% filter(!grepl(paste(lod_outliers, collapse = "|"), Assay))
+
+    # get the count table
+    count_table <- olink_count_table(data)
+    write.csv(count_table, glue('{outdir}/count_table.csv'))
+
+    # return the data
+    message('Done filtering')
+    out <- list(data = data, count_table = count_table, outliers = outliers, lod_outliers = lod_outliers)
+
+    return(out)
 }
