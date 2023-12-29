@@ -164,21 +164,22 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
     writeLines(glue("{names(sample_info)}: {sample_info}\n"), file.path(outdir, "sampleIDs.txt"))
 
     # get the pca outliers
-    message('Getting PCA outliers')
-    pca_outliers <- do.call(olink_pca_outliers, c(list(data = data, outdir = outdir), pca_args))
+    message('Running PCA')
+    pca_outliers <- do.call(olink_pca_outliers, c(list(data = data, outdir = file.path(outdir, 'pca')), pca_args))
     saveRDS(pca_outliers, glue('{outdir}/pca/pca_outliers.rds'))
 
     # get the umap outliers
-    message('Getting UMAP outliers')
-    umap_outliers <- do.call(olink_umap_outliers, c(list(data = data, outdir = outdir), umap_args))
+    message('Running UMAP')
+    umap_outliers <- do.call(olink_umap_outliers, c(list(data = data, outdir = file.path(outdir, 'umap')), umap_args))
     saveRDS(umap_outliers, glue('{outdir}/umap/umap_outliers.rds'))
 
     # get the lod qc
-    message('Getting LOD QC')
-    lod_qc <- do.call(olink_lod_qc, c(list(data = data, outdir = outdir), lod_args))
+    message('Running LOD')
+    lod_qc <- do.call(olink_lod_qc, c(list(data = data, outdir = file.path(outdir, 'lod')), lod_args))
     saveRDS(lod_qc, glue('{outdir}/lod/lod_qc.rds'))
 
     # get the outliers
+    message('Getting outliers')
     pca_outliers <- olink_pca$outliers %>% pull(SampleID)
     qc_outliers <- data %>% filter(QC_Warning == "WARN") %>% pull(SampleID) %>% unique()
     qc_plot_outliers <- qc_plot$data %>% filter(Outlier == 1) %>% pull(SampleID)
@@ -190,7 +191,6 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
 
     # remove the outliers
     data %<>% filter(!grepl(paste(outliers, collapse = "|"), SampleID))
-
     # remove the proteins that are below the LOD
     data %<>% filter(!grepl(paste(lod_outliers, collapse = "|"), Assay))
 
