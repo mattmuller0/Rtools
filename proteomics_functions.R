@@ -211,24 +211,55 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
 #   data: data frame of olink data
 #   condition: condition column
 #   outdir: output directory
+#   de_fxn: differential expression function
+#   gsea_fxn: pathway analysis function
 #   de_args: arguments to pass to differential expression function
 #   gsea_args: arguments to pass to pathway analysis function
 # Outputs:
 #   list of differential expression and pathway analysis results
-olink_analysis <- function(data, condition, outdir, de_args = list(), gsea_args = list()) {
-    dir.create(outdir, showWarnings = F)
-    # get the differential expression
-    message('Running differential expression')
-    de <- olink_de(data, condition, outdir = file.path(outdir, 'de'), ...)
-    saveRDS(de, glue('{outdir}/de/de.rds'))
+olink_analysis <- function(
+    data, 
+    conditions, 
+    outdir, 
+    de_fxn = olink_wilcox, 
+    gsea_fxn = olink_pathway_enrichment,
+    de_args = list(),
+    volcano_args = list(),
+    gsea_args = list()
 
-    # get the pathway analysis
-    message('Running pathway analysis')
-    gsea <- olink_gsea(de, outdir = file.path(outdir, 'gsea'), ...)
-    saveRDS(gsea, glue('{outdir}/gsea/gsea.rds'))
+    ) {
+    dir.create(outdir, showWarnings = F)
+    
+    # make sure the condition is in the data
+    if (!conditions %in% colnames(data)) {
+        stop(glue('Condition {condition} not in data'))
+    }
+
+    de_res <- list()
+    gsea_res <- list()
+    for (condition in conditions)
+        dir.create(glue('{outdir}/{condition}'), showWarnings = F)
+        # get the differential expression
+        message('Running differential expression')
+        de <- do.call(de_fxn, c(list(data, condition), de_args))
+        p <- do.call(olink_volcano_plot, list(de))
+        ggsave(glue('{outdir}/{condition}/volcano.pdf'), p, width = 6, height = 6)
+        write.csv(de, glue('{outdir}/{condition}/de_results.csv'), row.names = F)
+        de_res[[condition]] <- de
+
+        # get the pathway analysis
+        message('Running pathway analysis')
+        gsea <- do.call(olink_pathway_enrichment, c(list(data, de), gsea_args))
+        write.csv(gsea, glue('{outdir}/{condition}/gsea_results.csv'), row.names = F)
+        p <- do.call(olink_pathway_visualization, list(gsea))
+        ggsave(glue('{outdir}/{condition}/gsea.pdf'), p, width = 12, height = 8)
+        p <- do.call(olink_pathway_heatmap, list(gsea, de))
+        ggsave(glue('{outdir}/{condition}/gsea_heatmap.pdf'), p, width = 12, height = 8)
+
+        gsea_res[[condition]] <- gsea
 
     # return the results
     message('Done with analysis')
-    out <- list(de = de, gsea = gsea)
+    out <- list(de = de_res, gsea = gsea_res)
     return(out)
 }
