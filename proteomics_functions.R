@@ -121,10 +121,11 @@ olink_lod_qc <- function(data, outdir, plot = TRUE) {
     }
 
     # proteins that fail the LOD in more than 75% of samples
-    outliers <- lod %>%
-        dplyr::group_by(Assay) %>%
-        dplyr::summarise(n_pass = sum(LOD_QC) / n()) %>%
-        dplyr::filter(n_pass < 0.75) 
+    # outliers <- lod %>%
+    #     dplyr::group_by(Assay) %>%
+    #     dplyr::summarise(n_pass = sum(LOD_QC) / n()) %>%
+    #     dplyr::filter(n_pass < 0.75) 
+    outliers <- lod %>% dplyr::filter(MissingFreq < 0.25)
 
     # return the proteins that fail the LOD
     out <- list(lod = lod, outliers = outliers)
