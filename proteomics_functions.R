@@ -22,7 +22,6 @@ library(AnnotationDbi)
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
 source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
 
 #======================== CODE ========================#
 
@@ -180,10 +179,11 @@ olink_filtering <- function(data, outdir, pca_args = list(), umap_args = list(),
 
     # get the outliers
     message('Getting outliers')
-    pca_outliers <- olink_pca$outliers %>% pull(SampleID)
     qc_outliers <- data %>% filter(QC_Warning == "WARN") %>% pull(SampleID) %>% unique()
-    qc_plot_outliers <- qc_plot$data %>% filter(Outlier == 1) %>% pull(SampleID)
-    outliers <- unique(c(pca_outliers, qc_outliers, qc_plot_outliers))
+    pca_outliers <- pca_outliers$outliers %>% pull(SampleID)
+    umap_outliers <- umap_outliers$outliers %>% filter(Outlier == 1) %>% pull(SampleID)
+    outliers <- unique(c(qc_outliers, pca_outliers, umap_outliers))
+    print(outliers)
 
     # proteins that are below the LOD
     message('Getting proteins below the LOD')
