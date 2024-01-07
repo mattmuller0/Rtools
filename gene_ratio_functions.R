@@ -41,41 +41,41 @@ for (pkg in packages) {
 #
 ###############################################################
 
-## Load in DGE data from duke and pace datasets
-pace_dge <- read.csv('data/hyper_v_hypo_deseqoutput.csv')
-duke_dge <- read.csv('data/duke_validation_run3/dge_analysis/comp_group1__hyper_v_nothyper_AGCONTROL_deseqout.csv')
-press_genes <- t(read.csv('data/clean/genes.csv'))
+# ## Load in DGE data from duke and pace datasets
+# pace_dge <- read.csv('data/hyper_v_hypo_deseqoutput.csv')
+# duke_dge <- read.csv('data/duke_validation_run3/dge_analysis/comp_group1__hyper_v_nothyper_AGCONTROL_deseqout.csv')
+# press_genes <- t(read.csv('data/clean/genes.csv'))
 
-# Select press genes present in both
-pace_dge <- pace_dge[pace_dge$X %in% press_genes,]
-pace_dge <- pace_dge[order(pace_dge$X),]
-duke_dge <- duke_dge[duke_dge$X %in% press_genes,]
-duke_dge <- duke_dge[order(duke_dge$X),]
+# # Select press genes present in both
+# pace_dge <- pace_dge[pace_dge$X %in% press_genes,]
+# pace_dge <- pace_dge[order(pace_dge$X),]
+# duke_dge <- duke_dge[duke_dge$X %in% press_genes,]
+# duke_dge <- duke_dge[order(duke_dge$X),]
 
-dge_data <- subset(pace_dge, select=c("X", "log2FoldChange"))
-colnames(dge_data) <- c("Genes", "Pace")
-dge_data$"Duke" <- duke_dge$log2FoldChange
+# dge_data <- subset(pace_dge, select=c("X", "log2FoldChange"))
+# colnames(dge_data) <- c("Genes", "Pace")
+# dge_data$"Duke" <- duke_dge$log2FoldChange
 
 
-# Filter with p value
-dge_filtered_sign <- dge_data[duke_dge$pvalue < 0.05,]
+# # Filter with p value
+# dge_filtered_sign <- dge_data[duke_dge$pvalue < 0.05,]
 
-# Take only genes that align and write them to csvs
-gene_list_up_sign <- dge_filtered_sign[dge_filtered_sign$Pace > 0 & dge_filtered_sign$Duke > 0,]
-gene_list_down_sign <- dge_filtered_sign[dge_filtered_sign$Pace < 0 & dge_filtered_sign$Duke < 0,]
+# # Take only genes that align and write them to csvs
+# gene_list_up_sign <- dge_filtered_sign[dge_filtered_sign$Pace > 0 & dge_filtered_sign$Duke > 0,]
+# gene_list_down_sign <- dge_filtered_sign[dge_filtered_sign$Pace < 0 & dge_filtered_sign$Duke < 0,]
 
-## Load in the correlated gene list data (data is median of ratios)
-subset_up <- gene_list_up_sign$Genes
-subset_down <- gene_list_down_sign$Genes
+# ## Load in the correlated gene list data (data is median of ratios)
+# subset_up <- gene_list_up_sign$Genes
+# subset_down <- gene_list_down_sign$Genes
 
-pace_genes <- read.csv('data/clean/pace/features.csv')
-pace_labels <- read.csv('data/clean/pace/labels.csv')$X0
+# pace_genes <- read.csv('data/clean/pace/features.csv')
+# pace_labels <- read.csv('data/clean/pace/labels.csv')$X0
 
-duke_genes <- read.csv('data/clean/duke/features_group1.csv')
-duke_labels <- read.csv('data/clean/duke/labels_group1.csv')$compouttable...2.
+# duke_genes <- read.csv('data/clean/duke/features_group1.csv')
+# duke_labels <- read.csv('data/clean/duke/labels_group1.csv')$compouttable...2.
 
-subset_up <- subset_up[subset_up %in% colnames(pace_genes)]
-subset_down <- subset_down[subset_down %in% colnames(pace_genes)]
+# subset_up <- subset_up[subset_up %in% colnames(pace_genes)]
+# subset_down <- subset_down[subset_down %in% colnames(pace_genes)]
 
 
 ###############################################################
@@ -429,7 +429,7 @@ gene_ratio_majority_voting <- function(
   
 }
 
-gene_ratio_threshold <- function(gene_ratio_df, labels, method = median){
+gene_ratio_threshold <- function(gene_ratio_df, labels, method = median) {
   label_ <- unique(labels)
   
   gene_ratio_df_condition <- gene_ratio_df[labels == label_[1],]
@@ -447,7 +447,7 @@ gene_ratio_threshold <- function(gene_ratio_df, labels, method = median){
   return(thresholds)
 }
 
-gene_ratio_margin <- function(gene_ratio_df, labels, method = median){
+gene_ratio_margin <- function(gene_ratio_df, labels, method = median) {
   label_ <- unique(labels)
   
   gene_ratio_df_condition <- gene_ratio_df[labels == label_[1],]

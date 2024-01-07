@@ -646,27 +646,3 @@ test_dds <- function(formula, dds, rstatix_test = wilcox_test, ...) {
     return(df_out)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#======================== END ========================#
-writeLines(capture.output(sessionInfo()), file.path(outdir, "session.log"))
-save.image(file.path(outdir, "image.RData"))
