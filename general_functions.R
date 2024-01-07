@@ -68,7 +68,7 @@ make_se <- function(countsMatr, colData) {
 #   - se: SummarizedExperiment object
 #   - path: path to save files
 #   - normalize: how to normalize the counts
-save_se <- function(se, path, normalize = 'mor', sep = " ") {
+save_se <- function(se, path, normalize = 'mor') {
   # make sure the path exists
   dir.create(path, showWarnings = F, recursive = T)
 
@@ -81,7 +81,7 @@ save_se <- function(se, path, normalize = 'mor', sep = " ") {
   write.csv(counts, file = file.path(path, paste0('counts_', normalize,'.csv')), quote = F, row.names = T, col.names = T)
   # save the colData if it exists
   if (!is.null(colData)) {
-    write.csv(colData, file = file.path(path, 'colData.csv'), quote = T, row.names = T, col.names = T)
+    write.csv(colData, file = file.path(path, 'metadata.csv'), quote = T, row.names = T, col.names = T)
   }
   # save the rowData if it exists
   if (!is.null(rowData)) {
