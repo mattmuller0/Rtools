@@ -247,6 +247,10 @@ filter_edgeR <- function(
   message("Saving dds object")
   saveRDS(dds, file = file.path(outpath,"dds.rds"))
 
+  # we want at least the raw and vst normalized counts
+  save_se(dds, outpath, normalize = "none")
+  save_se(dds, outpath, normalize = "vst")
+
   return(dds)
 }
 
