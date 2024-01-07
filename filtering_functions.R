@@ -24,7 +24,6 @@ source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_fu
 source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
 
 #======================== CODE ========================#
-
 # Function to get percent of genes detected
 # Arguments:
 #   dds: DESeq2 object
@@ -63,11 +62,7 @@ rna_preprocessing <- function(
   
   dir.create(outpath, showWarnings = F, recursive = T)
   # set normalization
-  if (normalize == "none") {normal <- assay}
-  if (normalize == "mor") {normal <- function(x) {counts(x, normalize = TRUE)}}
-  if (normalize == "cpm") {normal <- cpm}
-  if (normalize == "rlog") {normal <- rlog}
-  if (normalize == "vst") {normal <- vst}
+  normal <- function(x) {normalize_counts(x, method = normalize)}
 
   # make a dds before filtering
   dds_before <- dds
@@ -152,6 +147,15 @@ rna_preprocessing <- function(
   # save the dds object
   message("Saving dds object")
   saveRDS(dds, file = file.path(outpath,"dds.rds"))
+  
+  # we want at least the raw and vst normalized counts
+  save_se(dds, outpath, normalize = normalize)
+  if (normalize != "none") {
+    save_se(dds, outpath, normalize = "none")
+  }
+  if (normalize != "vst") {
+    save_se(dds, outpath, normalize = "vst")
+  }
 
   return(dds)
 }
