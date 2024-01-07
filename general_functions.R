@@ -78,14 +78,14 @@ save_se <- function(se, path, normalize = 'mor') {
   rowData <- as.data.frame(rowData(se))
 
   # Save counts
-  write.csv(counts, file = file.path(path, paste0('counts_', normalize,'.csv')), quote = F, row.names = T, col.names = T)
+  write.csv(counts, file = file.path(path, paste0('counts_', normalize,'.csv')), quote = F, row.names = T)
   # save the colData if it exists
   if (!is.null(colData)) {
-    write.csv(colData, file = file.path(path, 'metadata.csv'), quote = T, row.names = T, col.names = T)
+    write.csv(colData, file = file.path(path, 'metadata.csv'), quote = T, row.names = T)
   }
   # save the rowData if it exists
   if (!is.null(rowData)) {
-    write.csv(rowData, file = file.path(path, 'rowData.csv'), quote = T, row.names = T, col.names = T)
+    write.csv(rowData, file = file.path(path, 'rowData.csv'), quote = T, row.names = T)
   }
 
 }
