@@ -413,7 +413,7 @@ remove_na_variables <- function(se, columns) {
   return(new_se)
 }
 
-# Function to take in dds object and deseq results and return summary of results
+# Function to summarize deseq results and return summary of results
 # Arguments:
 #   results: results of differential expression analysis
 #   padj_cutoffs: list of padj cutoffs to use
@@ -449,6 +449,60 @@ summarize_deseq_experiment <- function(
 
   # combine the summaries
   summary <- rbind(padj_summary, pvalue_summary)
+  return(summary)
+}
+
+# Function to summarize results more generally
+# Arguments:
+#   results: results of differential expression analysis
+#   logFC_column: column to use for logFC
+#   pvalue_column: column to use for pvalue
+#   padj_column: column to use for padj
+#   padj_cutoffs: list of padj cutoffs to use
+#   pvalue_cutoffs: list of pvalue cutoffs to use
+#   logFC_cutoff: logFC cutoff to use
+# Outputs:
+#   summary of results
+summarize_experiment <- function(
+  results, 
+  logFC_column = 'log2FoldChange',
+  pvalue_column = 'pvalue',
+  padj_column = 'padj',
+  pvalue_cutoffs = c(0.01, 0.05, 0.1), 
+  padj_cutoffs = c(0.05, 0.1, 0.2), 
+  logFC_cutoff = 0
+  ) {
+  # summary of the results at different padj cutoffs
+  summary <- data.frame(
+    variable = character(),
+    p_cutoff = numeric(),
+    fc_cutoff = numeric(),
+    n_sig = numeric(),
+    n_up = numeric(),
+    n_down = numeric()
+  )
+  lapply(pvalue_cutoffs, function(pvalue_cutoff) {
+    summary <<- summary %>% 
+      add_row(
+        variable = 'pvalue',
+        cutoff = pvalue_cutoff,
+        fc_cutoff = logFC_cutoff,
+        n_sig = sum(results[[pvalue_column]] < pvalue_cutoff),
+        n_up = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] > logFC_cutoff),
+        n_down = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] < -logFC_cutoff)
+      )
+  })
+  lapply(padj_cutoffs, function(padj_cutoff) {
+    summary <<- summary %>% 
+      add_row(
+        variable = 'padj',
+        cutoff = padj_cutoff,
+        fc_cutoff = logFC_cutoff,
+        n_sig = sum(results[[padj_column]] < padj_cutoff),
+        n_up = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] > logFC_cutoff),
+        n_down = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] < -logFC_cutoff)
+      )
+  })
   return(summary)
 }
 
