@@ -640,6 +640,42 @@ plot_correlation_matrix <- function(cor_mat, title = '', xlab = '', ylab = '', x
     return(plot)
 }
 
+# Function to create a forest plot from a data frame
+# Arguments:
+#   - df: data.frame, data frame to plot
+#   x - character, column name of x-axis
+#   y - character, column name of y-axis
+#   error - character, column name of y-axis error
+# Outputs:
+#   - plot: ggplot, forest plot
+plot_forest <- function(
+  df, 
+  x, y, 
+  error, 
+  color = x,
+  facet = NULL,
+  title = 'Forest Plot', 
+  xlab = '', ylab = '', 
+  ...
+  ) {
+  # Make the plot
+  plot <- ggplot(df, aes(x = !!sym(x), y = !!sym(y), color = !!sym(color))) +
+    geom_point() +
+    geom_linerange(aes(ymin = !!sym(y) - !!sym(error), ymax = !!sym(y) + !!sym(error))) +
+    geom_hline(yintercept = 1, linetype = 'dashed') +
+    # theme
+    theme_bw() +
+    theme(legend.position = 'bottom') +
+    coord_flip() +
+    labs(
+      title = title,
+      x = xlab,
+      y = ylab
+      )
+  if (!is.null(facet)) {plot <- plot + facet_grid(facet)}
+    return(plot)
+  }
+
 #======================== WIP ========================#
 # # A function to run an adjusted t-test for a set of vectors. This is meant to be input into the stat_compare_means_adj function.
 # # Arguments:

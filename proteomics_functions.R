@@ -265,3 +265,55 @@ olink_analysis <- function(
     out <- list(de = de_res, gsea = gsea_res)
     return(out)
 }
+
+# Function to calculate odds ratios for olink data
+# Arguments:
+#   data: data frame of olink data
+#   proteins: vector of proteins to calculate odds ratios for
+#   events: vector of events to calculate odds ratios for
+#   adjustments: vector of variables to adjust for
+# Outputs:
+#   list of odds ratios for each event
+olink_odds_ratios <- function(data, proteins, events, adjustments = NULL) {
+    # map over the events and proteins to get the odds ratios
+    or.df <- purrr::map(
+        .x = events,
+        .f = function(event) {
+            out <- purrr::map(
+                .x = proteins,
+                .f = function(protein) {
+                    # get the counts for the event and protein
+                    dat <- data %>%
+                        dplyr::select(protein, event, any_of(adjustments)) %>%
+                        drop_na()
+                    # make a formula to adjust for
+                    if (is.null(adjustments)) {
+                        form <- paste0(event, ' ~ ', protein)
+                    } else {
+                        form <- paste0(event, ' ~ ', protein, ' + ', paste(adjustments, collapse = ' + '))
+                    }
+                    # get the odds ratio
+                    odds_ratio <- glm(
+                        formula = form,
+                        data = dat,
+                        family = binomial(link = 'logit')
+                    ) %>%
+                        broom::tidy() %>%
+                        filter(term == protein) %>%
+                        mutate(
+                            odds.ratio = exp(estimate),
+                            or.ci.lower = exp(estimate - 1.96 * std.error),
+                            or.ci.upper = exp(estimate + 1.96 * std.error),
+                            formula = form
+                        ) %>%
+                        dplyr::select(term, odds.ratio, or.ci.lower, or.ci.upper, estimate, std.error, p.value, formula)
+                }
+            )
+            out <- do.call(rbind, out)
+            out$p.adj <- p.adjust(out$p.value, method = 'BH')
+            out
+        }
+    )
+    names(or.df) <- events
+    return(or.df)
+}
