@@ -91,31 +91,7 @@ sampleCorrelations <- function(
   return(correlations)
 }
 
-# Wilcoxan Ranked Sum testing on genes in two summarized experiments
-# gene_wilcox_test <- function(dds, design) {
-#   # Extract count data from the DESeq object
-#   count_data <- assay(dds)
-  
-#   # Extract metadata from the DESeq object
-#   meta <- colData(dds) %>% as.data.frame() %>% dplyr::select(sym(condition), age, race, sex)
-  
-#   # Create a design matrix
-#   design_matrix <- model.matrix( ~ age + sex + race, data = meta)
-  
-#   # Perform Wilcoxon ranked sum test while adjusting for age, sex, and race
-#   fit <- apply(count_data, 1, function(x) {
-#     model <- glm(x ~ design_matrix)
-#     wilcox <- wilcox.test(model$residuals ~ meta[, condition], exact = F)
-#     return(wilcox)
-#   })  
-  
-#   # Extract p-values and adjust for multiple testing using the Benjamini-Hochberg method
-#   res <- data.frame(pvalue = sapply(fit, function(x) c(x$p.value))) 
-#   res <- res %>% mutate(padj = p.adjust(res$pvalue, method="BH"))
-  
-#   # View results
-#   return(res)
-# }
+
 
 # Function to make a table 1
 # Arguments:
@@ -647,8 +623,69 @@ trend_table <- function(data, x, ys, verbose = FALSE, ...) {
 }
 
 
+# Function to make filtered hazard ratio tables
+filtered_hazard_ratio_table <- function(
+  data, 
 
+  condition,
+  risks, 
+  censors, 
+  
+  censor_prefix = 'C_',
+  time_prefix = 'T_',
+  per_sd = TRUE,
+  ovr = FALSE,
 
+  verbose = FALSE, 
+  ...
+  ) {
+  # make sure the risks are all characters
+  if (!all(sapply(risks, is.character))) {
+    stop('risks must be characters')
+  }
+
+  surv_risk_res <- map(
+      risks, 
+      function(x) {
+          vals <- na.omit(unique(data[,x]))
+          print(glue("Filtering for {x}"))
+          res <- map(
+              vals, 
+              function(y) {
+                  tmp <- data %>% filter(!!sym(x) == y)
+                  if (verbose) {
+                      message(glue("    Subfiltering {y}"))
+                      message(glue("    N = {nrow(tmp)}"))
+                  }
+                  tryCatch({
+                      out <- hazard_ratios_table(
+                          df = tmp, 
+                          condition = condition,
+                          censors = censors,
+                          censor_prefix = censor_prefix,
+                          time_prefix = time_prefix,
+                          per_sd = per_sd,
+                          ovr = ovr,
+                          ...
+                          )
+                      out$x <- x
+                      out$y <- y
+                      out$n <- nrow(tmp)
+                      return(out)
+                  },
+                      error = function(e) {
+                          if (verbose) {message(glue("    ERROR: {e}"))}
+                          return(NULL)
+                      }
+                  )
+              }
+          )
+          res <- do.call(rbind, res)
+      }
+  )
+  surv_risk_res <- do.call(rbind, surv_risk_res)
+  return(surv_risk_res)
+}
 
 #======================== Old Code ========================#
 # # Function to calculate p-values from a correlation matrix
@@ -689,4 +726,31 @@ trend_table <- function(data, x, ys, verbose = FALSE, ...) {
   
 #   # Return the correlation matrix
 #   return(cor_mat)
+# }
+
+
+# Wilcoxan Ranked Sum testing on genes in two summarized experiments
+# gene_wilcox_test <- function(dds, design) {
+#   # Extract count data from the DESeq object
+#   count_data <- assay(dds)
+  
+#   # Extract metadata from the DESeq object
+#   meta <- colData(dds) %>% as.data.frame() %>% dplyr::select(sym(condition), age, race, sex)
+  
+#   # Create a design matrix
+#   design_matrix <- model.matrix( ~ age + sex + race, data = meta)
+  
+#   # Perform Wilcoxon ranked sum test while adjusting for age, sex, and race
+#   fit <- apply(count_data, 1, function(x) {
+#     model <- glm(x ~ design_matrix)
+#     wilcox <- wilcox.test(model$residuals ~ meta[, condition], exact = F)
+#     return(wilcox)
+#   })  
+  
+#   # Extract p-values and adjust for multiple testing using the Benjamini-Hochberg method
+#   res <- data.frame(pvalue = sapply(fit, function(x) c(x$p.value))) 
+#   res <- res %>% mutate(padj = p.adjust(res$pvalue, method="BH"))
+  
+#   # View results
+#   return(res)
 # }

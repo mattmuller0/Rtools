@@ -676,6 +676,83 @@ plot_forest <- function(
     return(plot)
   }
 
+
+plot_stratified_forest <- function(
+  df, 
+  x = 'x', y = 'y', 
+
+  estimate = 'estimate',
+  error_lower = 'HR_ci_lower',
+  error_upper = 'HR_ci_upper',
+
+  color,
+  facet
+) {
+  # set any estimates or errors over 20 to 20 if they are over
+  if (any(df[, estimate] > 20)) {
+    message('Some estimates are over 20. Setting them to 20.')
+    df[, estimate] <- ifelse(df[, estimate] > 20, 20, df[, estimate])
+    df[, error_lower] <- ifelse(df[, error_lower] > 20, 20, df[, error_lower])
+    df[, error_upper] <- ifelse(df[, error_upper] > 20, 20, df[, error_upper])
+  }
+  p <- df %>%
+          mutate(xy = glue("{x} ({y})")) %>%
+          ggplot(aes(x = !!sym(estimate), y = !!sym(y), color = !!sym(x))) +
+          geom_point() +
+          geom_linerange(aes(xmin=!!sym(error_lower), xmax=!!sym(error_upper))) +
+          geom_vline(xintercept = 1, linetype = "dashed") + 
+          labs(title = NULL, x = "Hazard Ratio", y = NULL, color = NULL) +
+          facet_grid(
+              x~., 
+              scales = "free", 
+              switch = "y", 
+              space = "free_y"
+              ) +
+          theme_bw() +
+          theme(
+              legend.position = "none",
+              strip.placement = "outside",
+              strip.background = element_blank(),
+              strip.text.y.left = element_text(angle = 0)
+              )
+
+      # verify the needed columns are present
+      if (!all(c(estimate, error_lower, error_upper, 'p.value', 'n') %in% colnames(df))) {
+          stop("The columns estimate, error_lower, error_upper, p.value, and n must be present in the data frame")
+      }
+      df$HR <- paste0(round(df[, estimate], 2), " (", round(df[, error_lower], 2), "-", round(df[, error_upper], 2), ")")
+      df$xy <- paste0(df$x, " (", df$y, ")")
+      p_right <- ggplot(df, aes(y = y)) +
+          geom_text(aes(x = 0, label = HR)) +
+          geom_text(aes(x = 1, label = signif(p.value, 2))) +
+          geom_text(aes(x = 2, label = n)) +
+          # stop the clipping
+          coord_cartesian(xlim = c(-0.5, 2.5)) +
+          labs(title = NULL, x = NULL, y = NULL)  +
+          facet_grid(
+              x~., 
+              scales = "free", 
+              switch = "y", 
+              space = "free_y"
+              ) +
+          scale_x_continuous(
+              breaks = c(0, 1, 2), labels = c("HR [95% CI]", "p-value", "n"),
+              expand = c(0, 0.1), position = "top"
+              ) +
+          theme_void() +
+          theme(strip.text.y = element_blank(), axis.text.x = element_text())
+
+      p <- plot_grid(
+          p, p_right, 
+          ncol = 2, 
+          rel_widths = c(1, 0.75),
+          align = "h", axis = "bt"
+      )
+}
+
+
+
+
 #======================== WIP ========================#
 # # A function to run an adjusted t-test for a set of vectors. This is meant to be input into the stat_compare_means_adj function.
 # # Arguments:
