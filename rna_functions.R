@@ -700,3 +700,26 @@ test_dds <- function(formula, dds, rstatix_test = wilcox_test, ...) {
     return(df_out)
 }
 
+
+# Function to make a count table from feature counts output directory
+# Arguments:
+#   directory: directory containing feature counts output
+#   pattern: pattern to match for feature counts output
+#   idx: index of column to use for counts
+#   ...: additional arguments to pass to read.table
+# Outputs:
+#   data frame of counts
+CountTableFromFeatureCounts <- function (directory = ".", pattern = "featureCounts.txt$", idx = 7, ... )
+{
+    if (missing(directory)) 
+        stop("directory is missing")
+    fl <- list.files(directory, pattern = pattern, full.names = TRUE)
+    message("reading ", length(fl), " samples ...")
+    sample_names <- basename(fl)
+    l <- lapply(as.character(sample_names, function(fn) read.table(file.path(directory, fn), ...)))
+    genes <- l[[1]]$V1
+    tbl <- sapply(l, function(a) a[, idx])
+    colnames(tbl) <- sample_names
+    # rownames(tbl) <- l[[1]]$V1
+    return(dds)
+}
