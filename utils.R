@@ -19,23 +19,10 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "devtools",
-  "BiocManager",
-  "SummarizedExperiment"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T) # nolint
-}
+library(tidyverse)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
 
 ###########################################################################
 #

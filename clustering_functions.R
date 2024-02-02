@@ -11,7 +11,6 @@
 
 # LOAD LIBRARIES ------------------------------------------
 library(tidyverse)
-library(glue)
 library(ggplot2)
 library(NMF)
 
@@ -138,7 +137,7 @@ nmf_plotter <- function(nmf_out) {
   cophenetic_plot <- ggplot(combined_df, aes(x = rank, y = cophenetic_dispersion, color = type)) +
     geom_point() + 
     labs(x = "Rank", y = "Cophenetic Dispersion") + 
-    theme_matt()
+    theme_bw()
 }
 
 # Function to estimate the kmeans clustering of a matrix using the elbow method

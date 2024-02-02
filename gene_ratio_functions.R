@@ -10,21 +10,11 @@
 # Now I'm trying to just bring them all to one spot
 
 # LOAD LIBRARIES ------------------------------------------
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "skimr",
-  "DESeq2",
-  "reshape2",
-  "scales",
-  "corrplot",
-  "umap"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T)
-}
+library(tidyverse, quietly = T)
+library(ggplot2, quietly = T)
+library(skimr, quietly = T)
+library(DESeq2, quietly = T)
+library(scales, quietly = T)
 
 # LOAD FUNCTIONS ------------------------------------------
 # space reserved for sourcing in functions

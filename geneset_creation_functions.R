@@ -22,30 +22,23 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "devtools",
-  "BiocManager",
-  "SummarizedExperiment",
-  "DESeq2",
-  "singscore",
-  "ggbiplot",
-  "edgeR",
-  "EnhancedVolcano",
-  "ggpubr",
-  "GGally",
-  "cowplot",
-  "ggrepel"
-)
-
-for (pkg in packages) {suppressPackageStartupMessages(library(pkg, character.only = T, quietly = T))}
+library(tidyverse)
+library(ggplot2)
+library(SummarizedExperiment)
+library(DESeq2)
+library(singscore)
+library(ggbiplot)
+library(edgeR)
+library(EnhancedVolcano)
+library(ggpubr)
+library(GGally)
+library(ggrepel)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/deseq_helper_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/deseq_helper_functions.R')
 
 ###########################################################################
 #

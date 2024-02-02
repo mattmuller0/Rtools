@@ -10,7 +10,7 @@
 # Script Name: Statistics Functions
 # 
 # Notes:
-# general stats functions I use for stuff. most use SE objects
+# general stats functions I use for stuff. most use SEs or DFs
 
 
 ###########################################################################
@@ -18,26 +18,14 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "devtools",
-  "BiocManager",
-  "SummarizedExperiment",
-  "tibble",
-  "tableone",
-  "epitools",
-  "glue"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T) # nolint
-}
+library(SummarizedExperiment)
+library(tibble)
+library(tableone)
+library(glue)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
 
 ###########################################################################
 #

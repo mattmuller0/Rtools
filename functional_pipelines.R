@@ -18,35 +18,23 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "devtools",
-  "BiocManager",
-  "SummarizedExperiment",
-  "DESeq2",
-  "edgeR",
-  "AnnotationDbi",
-  "apeglm",
-  "ggpubr",
-  "EnhancedVolcano",
-  "cowplot",
-  "ggtree"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T) # nolint
-}
+library(tidyverse)
+library(ggplot2)
+library(SummarizedExperiment)
+library(DESeq2)
+library(AnnotationDbi)
+library(ggpubr)
+library(EnhancedVolcano)
+library(ggtree)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
 
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/deseq_helper_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/geneset_creation_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/deseq_helper_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/geneset_creation_functions.R')
 
 ###########################################################################
 #

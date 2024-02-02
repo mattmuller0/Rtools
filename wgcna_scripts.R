@@ -19,24 +19,12 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "BiocManager",
-  "SummarizedExperiment",
-  "WGCNA",
-  "clusterProfiler",
-  "ggbiplot"
-)
-
-for (pkg in packages) {
-  paste0(pkg)[[1]]
-  library(pkg, character.only = T, quietly = T)
-}
-
-# LOAD FUNCTIONS
-# space reserved for sourcing in functions
-
+library(tidyverse)
+library(ggplot2)
+library(SummarizedExperiment)
+library(WGCNA)
+library(clusterProfiler)
+library(ggbiplot)
 
 ###########################################################################
 #
@@ -44,7 +32,7 @@ for (pkg in packages) {
 #
 ###########################################################################
 
-plot_wgcna_dendogram <- function(net){
+plot_wgcna_dendogram <- function(net) {
   # open a graphics window
   # sizeGrWindow(12, 9)
   # Convert labels to colors for plotting
@@ -56,7 +44,7 @@ plot_wgcna_dendogram <- function(net){
                       addGuide = TRUE, guideHang = 0.05)
 }
 
-module_wilcoxan_test <- function(MEs, trait){
+module_wilcoxan_test <- function(MEs, trait) {
   moduleCohort_wilcox <- tibble()
   for (ME in names(MEs)){
     MEs_wilcox <- MEs
@@ -89,7 +77,7 @@ wgcna_initial_process <- function(
     outdir,
     
     log2_read_filter = 5
-    ){
+    ) {
   require(WGCNA)
   require(DESeq2)
   require(SummarizedExperiment)
@@ -120,7 +108,7 @@ wgcna_initial_process <- function(
   
   gsg = goodSamplesGenes(datExpr0, verbose = 2)
   
-  if (!gsg$allOK){
+  if (!gsg$allOK) {
     # Optionally, print the gene and sample names that were removed:
     if (sum(!gsg$goodGenes)>0) 
       printFlush(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")));
@@ -289,7 +277,7 @@ wgcna_running <- function(
   # Call the network topology analysis function
   sft = pickSoftThreshold(datExpr, powerVector = powers, RsquaredCut = sft_RsquaredCut)
   
-  plot_sft_threshold <- function(sft){
+  plot_sft_threshold <- function(sft) {
     # Plot the results:
     # sizeGrWindow(9, 5)
     par(mfrow = c(1,2));
@@ -530,7 +518,7 @@ wgcna_enrichment <- function(
     moduleColors,
     
     outdir
-){
+) {
   require(WGCNA)
   require(SummarizedExperiment)
   require(clusterProfiler)
@@ -603,7 +591,7 @@ wgcna_visualization <- function(
     moduleColors,
     
     outdir
-){
+) {
   require(WGCNA)
   require(SummarizedExperiment)
   require(clusterProfiler)

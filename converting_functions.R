@@ -15,7 +15,6 @@ library(ggplot2)
 library(clusterProfiler)
 library(org.Hs.eg.db)
 library(AnnotationDbi)
-library(DESeq2)
 
 #======================== ID Conversions ========================#
 # Function to map gene IDs with annotationDbi
