@@ -268,9 +268,9 @@ run_deseq <- function(
     ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
 
     # make gene list
-    geneList <- get_fc_list(res)
+    gL <- get_fc_list(res)
     # gse <- rna_enrichment(geneList, outpath)
-    gse_list <- gsea_analysis(geneList, outpath)
+    gse_list <- gsea_analysis(gL, outpath)
 
 
     message("Results Summary:")

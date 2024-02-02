@@ -22,6 +22,7 @@ library(ggpubr)
 # space reserved for sourcing in functions
 source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
 source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
 
 
 #======================== CODE ========================#
@@ -91,7 +92,6 @@ rna_enrichment <- function(
     enricher_function <- gseGO
     }
 
-  # gse <- enricher_function(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf, ...)
   gse <- do.call(enricher_function, list(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf, ...))
   
   write.csv(gse@result, file.path(outpath, "enrichment_results.csv"), quote = TRUE, row.names = FALSE)
@@ -183,9 +183,10 @@ gsea_analysis <- function(
     dplyr::select(gs_name, entrez_gene)
 
   # Run GSEA on a few genesets
+  print(geneList)
   gse_go <- gseGO(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf)
-  # gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
-  # gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
+  gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
+  gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
 
   # gse list to loop over
   gse_list <- list(
