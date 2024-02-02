@@ -184,14 +184,14 @@ gsea_analysis <- function(
 
   # Run GSEA on a few genesets
   gse_go <- gseGO(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf)
-  # gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
-  # gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
+  gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
+  gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
 
   # gse list to loop over
   gse_list <- list(
-    GO = gse_go
-    # KEGG = gse_kegg,
-    # msigdb = gse_msigdb
+    GO = gse_go,
+    KEGG = gse_kegg,
+    msigdb = gse_msigdb
   )
 
   for (idx in 1:length(gse_list)) {
