@@ -173,7 +173,7 @@ gsea_analysis <- function(
   dir.create(outpath, showWarnings = F, recursive = T)
 
   # prep the gene list for kegg
-  entrez_names <- map_gene_ids(names(geneList), from = keyType, to = "ENTREZID", remove_missing = FALSE)
+  entrez_names <- map_gene_ids(names(geneList), from = keyType, to = "ENTREZID", remove_missing = TRUE)
   entrez_gL <- geneList
   names(entrez_gL) <- entrez_names
 
@@ -184,8 +184,8 @@ gsea_analysis <- function(
 
   # Run GSEA on a few genesets
   gse_go <- gseGO(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf)
-  gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
-  gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
+  # gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
+  # gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
 
   # gse list to loop over
   gse_list <- list(
