@@ -29,6 +29,7 @@ library(cowplot)
 library(ggtree)
 library(ComplexHeatmap)
 library(ggsci)
+library(ggrepel)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
