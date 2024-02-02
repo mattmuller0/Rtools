@@ -333,7 +333,6 @@ ovr_deseq_results <- function(dds, column, outpath, ...) {
   require(DESeq2)
   require(clusterProfiler)
   require(DOSE)
-  require(enrichplot)
 
   dir.create(outpath, showWarnings = F, recursive = T)
 
