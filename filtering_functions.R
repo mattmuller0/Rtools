@@ -8,9 +8,6 @@
 # Script Name: expr_filtering_functions
 
 #======================== LIBRARIES ========================#
-library(lintr) #nolint
-library(httpgd) #nolint
-library(languageserver) #nolint
 library(devtools)
 library(dplyr)
 library(tidyverse)

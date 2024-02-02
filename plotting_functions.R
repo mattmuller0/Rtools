@@ -19,25 +19,16 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-packages <- c(
-  "tidyverse",
-  "ggplot2",
-  "devtools",
-  "BiocManager",
-  "SummarizedExperiment",
-  "DESeq2",
-  "edgeR",
-  "AnnotationDbi",
-  "apeglm",
-  "ggpubr",
-  "EnhancedVolcano",
-  "cowplot",
-  "ggtree",
-  "ComplexHeatmap",
-  "ggsci"
-)
-
-for (pkg in packages) {suppressPackageStartupMessages(library(pkg, character.only = T, quietly = T))} # nolint
+library(tidyverse)
+library(ggplot2)
+library(SummarizedExperiment)
+library(DESeq2)
+library(AnnotationDbi)
+library(ggpubr)
+library(cowplot)
+library(ggtree)
+library(ComplexHeatmap)
+library(ggsci)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

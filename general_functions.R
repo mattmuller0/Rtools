@@ -12,7 +12,6 @@
 # LOAD LIBRARIES ------------------------------------------
 library(tidyverse)
 library(glue)
-library(ggplot2)
 
 # CODE BLOCK ----------------------------------------------
 

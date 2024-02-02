@@ -8,12 +8,7 @@
 # Script Name: enrichment_functions
 
 #======================== LIBRARIES ========================#
-library(lintr) #nolint
-library(httpgd) #nolint
-library(languageserver) #nolint
-library(devtools)
 library(tidyverse)
-library(glue)
 library(clusterProfiler)
 library(org.Hs.eg.db)
 library(AnnotationDbi)
@@ -25,8 +20,8 @@ library(ggpubr)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
 
 
 #======================== CODE ========================#

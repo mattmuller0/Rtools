@@ -8,32 +8,24 @@
 # Script Name: rna_functions
 
 #======================== LIBRARIES ========================#
-library(lintr) #nolint
-library(httpgd) #nolint
-library(languageserver) #nolint
-library(devtools)
 library(tidyverse)
-library(glue)
 library(AnnotationDbi)
-library(enrichplot)
 library(forcats)
 library(ggplot2)
 library(msigdbr)
 library(ggpubr)
-library(ggbiplot)
 library(ggpubr)
 library(DESeq2)
 library(edgeR)
 library(limma)
 
-
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/enrichment_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R')
-source_url('https://raw.githubusercontent.com/mattmuller0/Rtools/main/filtering_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/enrichment_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/filtering_functions.R')
 
 #======================== CODE ========================#
 # Wilcoxan Ranked Sum testing on genes in two summarized experiments
