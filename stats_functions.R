@@ -338,6 +338,7 @@ survival_analysis <- function(
       coord_cartesian(clip = "off") +
       add_confidence_interval(alpha=0.1) +
       theme_classic(18) + 
+      theme(legend.position = "top") +
       # add padding to axis for the risk table
       lims(x = c(0, max(surv_obj$time)+100)) +
       labs(
