@@ -18,6 +18,7 @@ library(ggpubr)
 library(DESeq2)
 library(edgeR)
 library(limma)
+library(ggbiplot)
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
