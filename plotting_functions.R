@@ -34,7 +34,7 @@ library(ggrepel)
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
-
+theme_set(theme_bw(22))
 
 ###########################################################################
 #
@@ -89,13 +89,12 @@ plot_percent_genes_detected <- function(dds, title, min_value = 0) {
 
 # Function to plot complex heatmap from DESeq2 object
 # Arguments:
-#   dds: DESeq2 object
+# @param dds: DESeq2 object
 #   title: title of plot
 #   annotations: list of annotations to plot
 #   normalize: type of normalization to use
 # Outputs:
 #   plot of complex heatmap
-
 plot_gene_heatmap <- function(
     dds, title, annotations=NULL, normalize = "log2-mor",
     ... # additional arguments to pass to Heatmap
@@ -552,9 +551,8 @@ plot_volcano <- function(
             )) +
         geom_point() +
         scale_color_manual(values = c('grey', 'red'), labels = c('NS', paste0(color, ' < 0.05'))) +
-
         geom_text_repel(
-          data = dge[dge[, color] < pCutoff, ],
+          data = head(dge[order(dge[, y]), ], 50),
           aes(label = !!sym(labels)), 
           show.legend = FALSE
           ) +
@@ -563,7 +561,8 @@ plot_volcano <- function(
         labs(
             x = bquote(~Log[2]~'Fold Change'),
             y = bquote(~-log[10]~'('~.(substitute(pvalue))~')'),
-            title = title
+            title = title,
+            color = NULL
         ) +
         # add text for the n up and n down
         annotate(
@@ -608,7 +607,6 @@ plot_correlation_matrix <- function(cor_mat, title = '', xlab = '', ylab = '', x
       values_to = 'cor'
       )
   
-    
     # set the order of the variables if given
     if (!is.null(x_order)) {
       long_cor_mat$var1 <- factor(long_cor_mat$var1, levels = x_order)
