@@ -93,53 +93,76 @@ rna_enrichment <- function(
     }
 
   gse <- do.call(enricher_function, list(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf, ...))
-  
   write.csv(gse@result, file.path(outpath, "enrichment_results.csv"), quote = TRUE, row.names = FALSE)
+  saveRDS(gse, file.path(outpath, "enrichment_results.rds"))
+  save_gse(gse, outpath, image_type = image_type)
+  return(gse)
+}
 
-
-  tryCatch(
-    {
-    # Dotplot
-    gseDot <- enrichplot::dotplot(gse, showCategory = 20) + ggtitle("Enrichment Dotplot");
-    ggsave(file.path(outpath, paste0('gseDotPlot.pdf')), gseDot)
-    }, 
-
-    # error handling
-    error = function(e) {warning("Failed to make dotplot")}
-  )
-
-  require(forcats)
-  require(ggplot2)
+# Function to save and plot gse object
+# Arguments:
+#   gse: gse object
+#   outpath: path to save to
+#   ...: additional arguments to pass to ggsave
+# Outputs:
+#   saves the gse object to the outpath
+save_gse <- function(gse, outpath, ...) {
   require(enrichplot)
+  require(ggplot2)
 
-  tryCatch(
-    {
+  # save the gse object
+  write.csv(gse@result, file.path(outpath, "enrichment_results.csv"), quote = TRUE, row.names = FALSE)
+  saveRDS(gse, file.path(outpath, "enrichment_results.rds"))
+
+  tryCatch({
+  # Dotplot
+  gseDot <- enrichplot::dotplot(gse, showCategory = 20) + ggtitle("Enrichment Dotplot");
+  ggsave(file.path(outpath, paste0('dotplot.pdf')), gseDot, ...)
+  }, error = function(e) {
+    warning("Dotplot GSEA Plots Failed")
+  })
+
+  tryCatch({
+    # cnetplot
+    cnet <- cnetplot(gse, node_label="gene", cex_label_gene = 0.8)
+    ggsave(file.path(outpath, paste0('cnetplot.pdf')), cnet, ...)
+  }, error = function(e) {
+    warning("Cnetplot GSEA Plots Failed")
+  })
+
+  tryCatch({
     # Barplot data
     gse_bar <- gse %>%
+      as.data.frame() %>%
       group_by(sign(NES)) %>%
       arrange(qvalue) %>%
       slice(1:10)
+
+    # check if the barplot is empty
+    if (nrow(gse_bar) < 3) {warning("Barplot is too small to plot"); return(NULL)}
 
     # Barplot
     gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue), showCategory=20) + 
       geom_col(orientation='y') + 
       scale_fill_continuous(low='red', high='blue', guide=guide_colorbar(reverse=TRUE)) +
-      labs(title='Enrichment Barplot') +
-      theme_classic2() + ylab(NULL)
-    ggsave(file.path(outpath, paste0('gseBarPlot.', image_type)), gseBar)
+      labs(title='Enrichment Barplot', y = NULL) +
+      theme_classic2()
+    ggsave(file.path(outpath, paste0('barplot.pdf')), gseBar, ...)
 
     # term specific barplot
-    p_terms <- plot_enrichment_terms(gse, terms2plot = terms2plot)
-    ggsave(file.path(outpath, paste0('gseBarPlot_terms.', image_type)), p_terms)
-    },
+    p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
+    ggsave(file.path(outpath, paste0('barplot_terms.pdf')), p_terms, ...)
 
-    # error handling
-    error = function(e) {warning("Failed to make barplot")}
-  )
-  return(gse)
+    # ridgeplot
+    p_ridge <- ridgeplot(gse, showCategory = 20)
+    ggsave(file.path(outpath, paste0('ridgeplot.pdf')), p_ridge, ...)
+  
+  }, error = function(e) {
+    warning("GSEA Plots Failed")
+  })
 }
 
-#  Run simple enrichment with enrichGO or gseGO
+#  Run a gsea analysis
 #  Arguments:
 #    geneList: list of genes to run enrichment on
 #    outpath: path to push results to
@@ -152,10 +175,9 @@ rna_enrichment <- function(
 gsea_analysis <- function(
   geneList, outpath, 
   keyType = NULL,
-  terms2plot = c("inflam", "immune", "plat"),
-  genes2plot = c('SREB', 'VWF', 'CXLC5', 'GCA'),
 
-  msigdb_category = "H", ontology = "ALL"
+  msigdb_category = "H", 
+  ontology = "ALL"
   ) {
   require(SummarizedExperiment)
   require(clusterProfiler)
@@ -179,83 +201,25 @@ gsea_analysis <- function(
 
   # get the hallmark geneset
   msigdbr_H <- msigdbr(species = "Homo sapiens", category = msigdb_category)
-  H_t2g <- msigdbr_H %>% 
-    dplyr::select(gs_name, entrez_gene)
+  H_t2g <- msigdbr_H %>% dplyr::select(gs_name, entrez_gene)
 
   # Run GSEA on a few genesets
   gse_go <- gseGO(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf)
-  gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf)
   gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
+  # gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf) # KEGG IS BROKEN
 
   # gse list to loop over
-  gse_list <- list(GO = gse_go, KEGG = gse_kegg, msigdb = gse_msigdb)
+  gse_list <- list(
+    GO = gse_go, 
+    msigdb = gse_msigdb
+    # KEGG = gse_kegg, # KEGG IS BROKEN
+    )
 
   for (idx in 1:length(gse_list)) {
     # get the gse and the name
     gse <- gse_list[[idx]]
     name <- names(gse_list)[idx]
-    
-    write.csv(gse@result, file.path(outpath, paste0(name, "_enrichment_results.csv")), quote = TRUE, row.names = FALSE)
-
-    # dotplot with error catching
-    tryCatch(
-      {
-      # Dotplot
-      gseDot <- enrichplot::dotplot(gse, showCategory = 20) + ggtitle("Enrichment Dotplot");
-      ggsave(file.path(outpath, paste0(name, '_DotPlot.pdf')), gseDot)
-      }, 
-
-      # error handling
-      error = function(e) {warning("Failed to make dotplot")}
-    )
-    
-    tryCatch(
-      {
-        gse_bar <- gse %>% 
-          as.data.frame() %>%
-          group_by(sign(NES)) %>%
-          arrange(qvalue) %>%
-          slice(1:10)
-
-        # Barplot
-        gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue), showCategory=20) + 
-          geom_col(orientation='y') + 
-          scale_fill_continuous(low='red', high='blue', guide=guide_colorbar(reverse=TRUE)) +
-          scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 18)) +
-          labs(title='Enrichment Barplot') +
-          theme_classic2() + ylab(NULL)
-        
-        ggsave(file.path(outpath, paste0(name, '_BarPlot.pdf')), gseBar)
-
-      },
-
-      # error handling
-      error = function(e) {warning("Failed to make barplot")}
-  )
-
-  # terms barplot with error catching
-    tryCatch(
-      {
-      # term specific barplot
-      p_terms <- plot_enrichment_terms(gse, terms2plot = terms2plot)
-      ggsave(file.path(outpath, paste0(name, '_BarPlot_terms.pdf')), p_terms)
-      },
-
-      # error handling
-      error = function(e) {warning("Failed to make terms barplot")}
-    )
-
-    # genes barplot with error catching
-    tryCatch(
-      {
-      # term specific barplot
-      p_genes <- plot_enrichment_terms(gse, genes2plot = genes2plot)
-      ggsave(file.path(outpath, paste0(name, '_BarPlot_genes.pdf')), p_genes)
-      },
-
-      # error handling
-      error = function(e) {warning("Failed to make genes barplot")}
-    )
+    save_gse(gse, file.path(outpath, name))
   }
   return(gse_list)
 }

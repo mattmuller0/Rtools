@@ -73,7 +73,7 @@ geneset_creation <- function(
 
     # settings
     image_type = "pdf"
-    ){
+    ) {
   require(tidyverse)
   require(EnhancedVolcano)
   require(ggplot2)
@@ -227,7 +227,7 @@ plot_gene_boxplot <- function(dds, geneset, condition, log_scaled = T) {
   return(plot)
 }
 
-export_counts_and_labels_from_SE <- function(dds, geneset, label, outpath, normalize="mor"){
+export_counts_and_labels_from_SE <- function(dds, geneset, label, outpath, normalize="mor") {
   require(DESeq2)
   require(edgeR)
   require(tidyverse)
@@ -249,7 +249,7 @@ export_counts_and_labels_from_SE <- function(dds, geneset, label, outpath, norma
   return(list(counttable, labels))
 }
 
-plot_normalized_pca <- function(dds, group, normalize="mor", labels = FALSE){
+plot_normalized_pca <- function(dds, group, normalize="mor", labels = FALSE) {
   # Make a normalized PCA plot
   if (normalize == "mor") {counttable <- counts(dds, normalize = T)}
   if (normalize %in% c("vsd", "vst")) {counttable <- assay(varianceStabilizingTransformation(dds))}
@@ -270,7 +270,7 @@ plot_normalized_pca <- function(dds, group, normalize="mor", labels = FALSE){
 }
 
 # Prep data to match the geneset for the validation
-prep_validation_data <- function(dds, geneset, label, outpath, normalize="mor"){
+prep_validation_data <- function(dds, geneset, label, outpath, normalize="mor") {
   # Normalize the data
   counttable <- normalize_counts(dds, normalize)
 
@@ -295,7 +295,6 @@ plot_geneset_heatmap <- function(dds, geneset, label) {
   require(edgeR)
   require(tidyverse)
   require(gplots)
-  require(RColorBrewer)
   require(ComplexHeatmap)
   
   # Subset and prep the data

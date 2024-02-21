@@ -172,9 +172,11 @@ plot_enrichment_terms <- function(
         filter(grepl(paste0(tolower(genes2plot), collapse = "|"), tolower(core_enrichment)), qvalue < qvalueCutoff) %>%
         filter(grepl(paste0(tolower(genes2plot), collapse = "|"), tolower(gene_id)), qvalue < qvalueCutoff)
     }
-  
-  # get an aspect ratio
-  # aspect_ratio <- length(enrichment_terms$Description) / 25
+
+  # cap at 20 terms
+  if (dim(enrichment_terms)[1] > 20) {
+    enrichment_terms <- head(enrichment_terms, 20)
+  }
 
   # plot enrichment
   p <- ggplot(enrichment_terms, aes(NES, fct_reorder(Description, NES), fill=qvalue)) + 
@@ -265,7 +267,7 @@ plot_correlations <- function(res, title, outpath) {
 # ggplot2 custom theme based upon theme_classic
 theme_matt <- function(base_size = 22, base_family = "", ...) {
   require(ggplot2)
-  theme_matt_ <- theme_classic(base_size = base_size, base_family = base_family) %+replace%
+  theme_matt_ <- theme_bw(base_size = base_size, base_family = base_family) %+replace%
     theme(
         # set the size of the text
         axis.text.x = element_text(size = base_size * 0.9, colour = "black"),
@@ -309,9 +311,6 @@ color_mapping <- function(df, custom_colors = NULL) {
   convert_to_factor <- df %>% 
     select_if(is.character) %>% 
     colnames()
-  
-  # convert to factors
-  df[convert_to_factor] <- lapply(df[convert_to_factor], as.factor)
 
   # add conversion to factor to categorical vars
   categorical_vars <- c(categorical_vars, convert_to_factor)

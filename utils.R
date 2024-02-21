@@ -90,3 +90,13 @@ detect_threads <- function() {
   threads <- parallel::detectCores(logical = F)
   return(threads)
 }
+
+# generate a json file from a list
+# Arguments:
+#   - list: list, list to convert to json
+#   - filename: character, name of the file to write
+# Returns:
+#   - none
+list_to_json <- function(list, filename) {
+  jsonlite::write_json(list, filename)
+}
