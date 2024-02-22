@@ -150,7 +150,7 @@ save_gse <- function(gse, outpath, ...) {
       theme_classic2()
     ggsave(file.path(outpath, paste0('barplot.pdf')), gseBar, ...)
 
-    # term specific barplot
+    # # term specific barplot
     # p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
     # ggsave(file.path(outpath, paste0('barplot_terms.pdf')), p_terms, ...)
   
