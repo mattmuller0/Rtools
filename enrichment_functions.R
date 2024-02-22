@@ -125,7 +125,7 @@ save_gse <- function(gse, outpath, ...) {
 
   tryCatch({
     # cnetplot
-    cnet <- cnetplot(gse, node_label="gene", cex_label_gene = 0.8)
+    cnet <- cnetplot(gse, node_label="category", cex_label_gene = 0.8)
     ggsave(file.path(outpath, paste0('cnetplot.pdf')), cnet, ...)
   }, error = function(e) {
     warning("Cnetplot GSEA Plots Failed")
