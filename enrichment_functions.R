@@ -151,15 +151,19 @@ save_gse <- function(gse, outpath, ...) {
     ggsave(file.path(outpath, paste0('barplot.pdf')), gseBar, ...)
 
     # term specific barplot
-    p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
-    ggsave(file.path(outpath, paste0('barplot_terms.pdf')), p_terms, ...)
-
-    # ridgeplot
-    p_ridge <- ridgeplot(gse, showCategory = 20)
-    ggsave(file.path(outpath, paste0('ridgeplot.pdf')), p_ridge, ...)
+    # p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
+    # ggsave(file.path(outpath, paste0('barplot_terms.pdf')), p_terms, ...)
   
   }, error = function(e) {
-    warning("GSEA Plots Failed")
+    warning("GSEA Barplots Failed")
+  })
+
+  tryCatch({
+    ridgeplot
+    p_ridge <- ridgeplot(gse, showCategory = 20)
+    ggsave(file.path(outpath, paste0('ridgeplot.pdf')), p_ridge, ...)
+  }, error = function(e) {
+    warning("RidgePlot GSEA Failed")
   })
 }
 
