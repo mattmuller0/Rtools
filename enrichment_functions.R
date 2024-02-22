@@ -107,6 +107,7 @@ rna_enrichment <- function(
 # Outputs:
 #   saves the gse object to the outpath
 save_gse <- function(gse, outpath, ...) {
+  dir.create(outpath, showWarnings = F, recursive = T)
   require(enrichplot)
   require(ggplot2)
 
