@@ -12,6 +12,7 @@
 # LOAD LIBRARIES ------------------------------------------
 library(tidyverse)
 library(glue)
+library(singscore)
 
 # CODE BLOCK ----------------------------------------------
 
@@ -111,17 +112,17 @@ summarize_df <- function(df) {
 #   - method: normalization method
 # Returns:
 #   - counts: normalized counts
-normalize_counts <- function(dds, method = 'mor') {
+normalize_counts <- function(dds, method = 'mor', log2 = FALSE) {
   require(DESeq2)
   require(SummarizedExperiment)
   require(BiocGenerics)
   require(edgeR)
   # Error handling
-  options <- c('mor', 'vst', 'vsd', 'log2', 'rld', 'cpm', 'rlog', 'rpkm', 'none', 'tmm', 'log2-mor')
+  options <- c('mor', 'vst', 'vsd', 'log2', 'rld', 'cpm', 'rlog', 'rpkm', 'none', 'tmm', 'log2-mor', 'rank')
   if (method %in% options) {
     normalize <- method
   } else {
-    stop('Invalid normalization method. Please choose from: log2-mor, mor, vst, vsd, log2, rld, cpm, rlog, rpkm, tmm, none')
+    stop('Invalid normalization method. Please choose from: log2-mor, mor, vst, vsd, log2, rld, cpm, rlog, rpkm, tmm, rank, none')
   }
 
   # Get normalized counts
@@ -135,8 +136,12 @@ normalize_counts <- function(dds, method = 'mor') {
   if (normalize == "rpkm") {counttable <- rpkm(dds)}
   if (normalize == "none") {counttable <- counts(dds)}
   if (normalize == "tmm") {counttable <- cpm(calcNormFactors(dds, method = "TMM"))}
+  if (normalize == "rank") {counttable <- rankGenes(dds)}
   if (normalize == "none") {counttable <- counts(dds)}
   counts <- as.data.frame(counttable)
+  if (log2) {
+    counts <- log2(counts + 1)
+  }
   return(counts)
 }
 
