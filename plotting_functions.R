@@ -551,7 +551,7 @@ plot_volcano <- function(
         geom_point() +
         scale_color_manual(values = c('grey', 'red'), labels = c('NS', paste0(color, ' < 0.05'))) +
         geom_text_repel(
-          data = head(dge[order(dge[, y]), ], 50),
+          data = head(dge[order(dge[, y]), ], 100),
           aes(label = !!sym(labels)), 
           show.legend = FALSE
           ) +

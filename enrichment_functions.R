@@ -140,10 +140,10 @@ save_gse <- function(gse, outpath, ...) {
       slice(1:10)
 
     # check if the barplot is empty
-    if (nrow(gse_bar) < 3) {warning("Barplot is too small to plot"); return(NULL)}
+    # if (nrow(gse_bar) < 3) {warning("Barplot is too small to plot"); return(NULL)}
 
     # Barplot
-    gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue), showCategory=20) + 
+    gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue)) + 
       geom_col(orientation='y') + 
       scale_fill_continuous(low='red', high='blue', guide=guide_colorbar(reverse=TRUE)) +
       labs(title='Enrichment Barplot', y = NULL) +
