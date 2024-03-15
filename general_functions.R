@@ -10,9 +10,7 @@
 
 
 # LOAD LIBRARIES ------------------------------------------
-library(tidyverse)
-library(glue)
-library(singscore)
+suppressPackageStartupMessages(library(tidyverse))
 
 # CODE BLOCK ----------------------------------------------
 
@@ -113,10 +111,11 @@ summarize_df <- function(df) {
 # Returns:
 #   - counts: normalized counts
 normalize_counts <- function(dds, method = 'mor', log2 = FALSE) {
-  require(DESeq2)
-  require(SummarizedExperiment)
-  require(BiocGenerics)
-  require(edgeR)
+  suppressPackageStartupMessages(require(DESeq2))
+  suppressPackageStartupMessages(require(SummarizedExperiment))
+  suppressPackageStartupMessages(require(BiocGenerics))
+  suppressPackageStartupMessages(require(edgeR))
+  suppressPackageStartupMessages(require(singscore))
   # Error handling
   options <- c('mor', 'vst', 'vsd', 'log2', 'rld', 'cpm', 'rlog', 'rpkm', 'none', 'tmm', 'log2-mor', 'rank')
   if (method %in% options) {
