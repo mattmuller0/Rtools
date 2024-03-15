@@ -22,7 +22,7 @@ library(ggpubr)
 # space reserved for sourcing in functions
 source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
 source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
+source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R')
 
 
 #======================== CODE ========================#
