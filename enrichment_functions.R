@@ -168,7 +168,7 @@ save_gse <- function(gse, outpath, ...) {
 
     tryCatch({
     ridgeplot
-    p_heat <- heatplot(gse, showCategory = 20)
+    p_heat <- heatplot(gse, showCategory = 10)
     ggsave(file.path(outpath, paste0('heatplot.pdf')), p_heat, ...)
   }, error = function(e) {
     warning("Heatplot GSEA Failed")
