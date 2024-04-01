@@ -18,10 +18,10 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-library(SummarizedExperiment)
-library(tibble)
-library(tableone)
-library(glue)
+suppressPackageStartupMessages(library(SummarizedExperiment))
+suppressPackageStartupMessages(library(tibble))
+suppressPackageStartupMessages(library(tableone))
+suppressPackageStartupMessages(library(glue))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
@@ -415,7 +415,7 @@ hazard_ratios_table <- function(
   ovr = FALSE,
 
   censor_prefix = 'C_',
-  time_prefix = 'time_to_',
+  time_prefix = 'T_',
 
   survfit_args = list(),
   survdiff_args = list(),
@@ -432,8 +432,8 @@ hazard_ratios_table <- function(
     stopifnot(all(censors %in% colnames(df)))
     stopifnot(all(time_vars %in% colnames(df)))
   }, error = function(e) {
-    message(glue('censor column {censors[!censors %in% colnames(df)]} not in data'))
-    message(glue('time column {time_vars[!time_vars %in% colnames(df)]} not in data'))
+    message(glue('censor columns {paste0(censors[!censors %in% colnames(df)], collapse = ", ")} not in data\n'))
+    message(glue('time column {paste0(time_vars[!time_vars %in% colnames(df)], collapse = ", ")} not in data\n'))
     stop(e)
   })
 
