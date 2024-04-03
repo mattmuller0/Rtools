@@ -8,11 +8,11 @@
 # Script Name: proteomics_functions
 
 #======================== LIBRARIES ========================#
-library(tidyverse)
-library(glue)
-library(OlinkAnalyze)
-library(clusterProfiler)
-library(AnnotationDbi)
+suppressMessages(library(tidyverse))
+suppressMessages(library(glue))
+suppressMessages(library(OlinkAnalyze))
+suppressMessages(library(clusterProfiler))
+suppressMessages(library(AnnotationDbi))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

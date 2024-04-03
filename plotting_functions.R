@@ -19,17 +19,17 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(SummarizedExperiment))
-suppressPackageStartupMessages(library(DESeq2))
-suppressPackageStartupMessages(library(AnnotationDbi))
-suppressPackageStartupMessages(library(ggpubr))
-suppressPackageStartupMessages(library(cowplot))
-suppressPackageStartupMessages(library(ggtree))
-suppressPackageStartupMessages(library(ComplexHeatmap))
-suppressPackageStartupMessages(library(ggsci))
-suppressPackageStartupMessages(library(ggrepel))
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(SummarizedExperiment))
+suppressMessages(library(DESeq2))
+suppressMessages(library(AnnotationDbi))
+suppressMessages(library(ggpubr))
+suppressMessages(library(cowplot))
+suppressMessages(library(ggtree))
+suppressMessages(library(ComplexHeatmap))
+suppressMessages(library(ggsci))
+suppressMessages(library(ggrepel))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

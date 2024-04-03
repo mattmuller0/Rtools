@@ -19,12 +19,12 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-library(tidyverse)
-library(ggplot2)
-library(SummarizedExperiment)
-library(WGCNA)
-library(clusterProfiler)
-library(ggbiplot)
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(SummarizedExperiment))
+suppressMessages(library(WGCNA))
+suppressMessages(library(clusterProfiler))
+suppressMessages(library(ggbiplot))
 
 ###########################################################################
 #

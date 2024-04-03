@@ -10,7 +10,7 @@
 
 
 # LOAD LIBRARIES ------------------------------------------
-suppressPackageStartupMessages(library(tidyverse))
+suppressMessages(library(tidyverse))
 
 # CODE BLOCK ----------------------------------------------
 

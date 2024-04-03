@@ -9,12 +9,12 @@
 # 
 
 # LOAD LIBRARIES ------------------------------------------
-library(tidyverse)
-library(glue)
-library(ggplot2)
-library(clusterProfiler)
-library(org.Hs.eg.db)
-library(AnnotationDbi)
+suppressMessages(library(tidyverse))
+suppressMessages(library(glue))
+suppressMessages(library(ggplot2))
+suppressMessages(library(clusterProfiler))
+suppressMessages(library(org.Hs.eg.db))
+suppressMessages(library(AnnotationDbi))
 
 #======================== ID Conversions ========================#
 # Function to map gene IDs with annotationDbi

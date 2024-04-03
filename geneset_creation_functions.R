@@ -22,17 +22,16 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-library(tidyverse)
-library(ggplot2)
-library(SummarizedExperiment)
-library(DESeq2)
-library(singscore)
-library(ggbiplot)
-library(edgeR)
-library(EnhancedVolcano)
-library(ggpubr)
-library(GGally)
-library(ggrepel)
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(DESeq2))
+suppressMessages(library(singscore))
+suppressMessages(library(ggbiplot))
+suppressMessages(library(edgeR))
+suppressMessages(library(EnhancedVolcano))
+suppressMessages(library(ggpubr))
+suppressMessages(library(GGally))
+suppressMessages(library(ggrepel))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

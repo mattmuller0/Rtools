@@ -8,15 +8,15 @@
 # Script Name: enrichment_functions
 
 #======================== LIBRARIES ========================#
-library(tidyverse)
-library(clusterProfiler)
-library(org.Hs.eg.db)
-library(AnnotationDbi)
-library(enrichplot)
-library(forcats)
-library(ggplot2)
-library(msigdbr)
-library(ggpubr)
+suppressMessages(library(tidyverse))
+suppressMessages(library(clusterProfiler))
+suppressMessages(library(org.Hs.eg.db))
+suppressMessages(library(AnnotationDbi))
+suppressMessages(library(enrichplot))
+suppressMessages(library(forcats))
+suppressMessages(library(ggplot2))
+suppressMessages(library(msigdbr))
+suppressMessages(library(ggpubr))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

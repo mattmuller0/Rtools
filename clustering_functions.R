@@ -10,9 +10,9 @@
 
 
 # LOAD LIBRARIES ------------------------------------------
-library(tidyverse)
-library(ggplot2)
-library(NMF)
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(NMF))
 
 # CODE BLOCK ----------------------------------------------
 # Add code here
