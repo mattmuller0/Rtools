@@ -8,17 +8,16 @@
 # Script Name: rna_functions
 
 #======================== LIBRARIES ========================#
-library(tidyverse)
-library(AnnotationDbi)
-library(forcats)
-library(ggplot2)
-library(msigdbr)
-library(ggpubr)
-library(ggpubr)
-library(DESeq2)
-library(edgeR)
-library(limma)
-library(ggbiplot)
+suppressMessages(library(tidyverse))
+suppressMessages(library(AnnotationDbi))
+suppressMessages(library(forcats))
+suppressMessages(library(ggplot2))
+suppressMessages(library(msigdbr))
+suppressMessages(library(ggpubr))
+suppressMessages(library(DESeq2))
+suppressMessages(library(edgeR))
+suppressMessages(library(limma))
+suppressMessages(library(ggbiplot))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

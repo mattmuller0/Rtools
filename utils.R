@@ -19,7 +19,7 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-library(tidyverse)
+suppressMessages(library(tidyverse))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

@@ -18,10 +18,10 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-suppressPackageStartupMessages(library(SummarizedExperiment))
-suppressPackageStartupMessages(library(tibble))
-suppressPackageStartupMessages(library(tableone))
-suppressPackageStartupMessages(library(glue))
+suppressMessages(library(SummarizedExperiment))
+suppressMessages(library(tibble))
+suppressMessages(library(tableone))
+suppressMessages(library(glue))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
