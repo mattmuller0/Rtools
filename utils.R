@@ -100,3 +100,17 @@ detect_threads <- function() {
 list_to_json <- function(list, filename) {
   jsonlite::write_json(list, filename)
 }
+
+# function to search a vector for a string
+# Arguments:
+#   - vector: vector, vector to search
+#   - string: character, string to search for
+# Returns:
+#   - named vector of indices
+search_vector <- function(vector, string, ...) {
+  idx <- grep(string, vector, ...)
+  vector <- vector[idx]
+  names(idx) <- vector
+  return(idx)
+  return(vector)
+}
