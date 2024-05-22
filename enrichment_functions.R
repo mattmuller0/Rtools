@@ -20,9 +20,9 @@ suppressMessages(library(ggpubr))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R')
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R")
 
 
 #======================== CODE ========================#
@@ -34,10 +34,10 @@ source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_fun
 #   names: column of names (if null default to rownames)
 # Outputs:
 #   vector of sorted fc values
-get_fc_list <- function(res, fc_col = 'log2FoldChange', names = NULL) {
+get_fc_list <- function(res, fc_col = "log2FoldChange", names = NULL) {
     if (is.null(names)) {
-        res[, 'rownames'] <- rownames(res)
-        names <- 'rownames'
+        res[, "rownames"] <- rownames(res)
+        names <- "rownames"
     }
 
     # get the fc values
@@ -70,7 +70,7 @@ rna_enrichment <- function(
   geneList, outpath, 
   keyType = NULL, enricher_function = NULL, 
   
-  image_type = 'pdf', ontology = "ALL", 
+  image_type = "pdf", ontology = "ALL", 
   terms2plot = c("inflam", "immune", "plat"), 
   ...
   ) {
@@ -107,18 +107,19 @@ rna_enrichment <- function(
 # Outputs:
 #   saves the gse object to the outpath
 save_gse <- function(gse, outpath, ...) {
-  dir.create(outpath, showWarnings = F, recursive = T)
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
   require(enrichplot)
   require(ggplot2)
 
   # save the gse object
   write.csv(gse@result, file.path(outpath, "enrichment_results.csv"), quote = TRUE, row.names = FALSE)
+  write.csv(filter(gse@results, qvalue < 0.1), file.path(outpath, "enrichment_results_sig.csv"), quote = TRUE, row.names = FALSE)
   saveRDS(gse, file.path(outpath, "enrichment_results.rds"))
 
   tryCatch({
   # Dotplot
-  gseDot <- enrichplot::dotplot(gse, showCategory = 20) + ggtitle("Enrichment Dotplot");
-  ggsave(file.path(outpath, paste0('dotplot.pdf')), gseDot, ...)
+  gseDot <- enrichplot::dotplot(gse, showCategory = 20) + ggtitle("Enrichment Dotplot")
+  ggsave(file.path(outpath, paste0("dotplot.pdf")), gseDot, ...)
   }, error = function(e) {
     warning("Dotplot GSEA Plots Failed")
   })
@@ -126,7 +127,7 @@ save_gse <- function(gse, outpath, ...) {
   tryCatch({
     # cnetplot
     cnet <- cnetplot(gse, node_label="category", cex_label_gene = 0.8)
-    ggsave(file.path(outpath, paste0('cnetplot.pdf')), cnet, ...)
+    ggsave(file.path(outpath, paste0("cnetplot.pdf")), cnet, ...)
   }, error = function(e) {
     warning("Cnetplot GSEA Plots Failed")
   })
@@ -139,37 +140,35 @@ save_gse <- function(gse, outpath, ...) {
       arrange(qvalue) %>%
       slice(1:10)
 
-    # check if the barplot is empty
-    # if (nrow(gse_bar) < 3) {warning("Barplot is too small to plot"); return(NULL)}
-
     # Barplot
-    gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue)) + 
-      geom_col(orientation='y') + 
-      scale_fill_continuous(low='red', high='blue', guide=guide_colorbar(reverse=TRUE)) +
-      labs(title='Enrichment Barplot', y = NULL) +
+    gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue)) +
+      geom_col(orientation = "y") +
+      scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
+      labs(title="Enrichment Barplot", y = NULL) +
       theme_classic2()
-    ggsave(file.path(outpath, paste0('barplot.pdf')), gseBar, ...)
-
-    # # term specific barplot
-    # p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
-    # ggsave(file.path(outpath, paste0('barplot_terms.pdf')), p_terms, ...)
-  
+    ggsave(file.path(outpath, paste0("barplot.pdf")), gseBar, ...)
   }, error = function(e) {
-    warning("GSEA Barplots Failed")
+    warning("GSEA Barplot Failed")
   })
 
   tryCatch({
-    ridgeplot
-    p_ridge <- ridgeplot(gse, showCategory = 20)
-    ggsave(file.path(outpath, paste0('ridgeplot.pdf')), p_ridge, ...)
+    # Platelet Termed Barplot
+    p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
+    ggsave(file.path(outpath, paste0("barplot_terms.pdf")), p_terms, ...)
+  }, error = function(e) {
+    warning("GSEA Term Specific Barplot Failed")
+  })
+
+  tryCatch({
+    p_ridge <- ridgeplot(gse, showCategory = 15)
+    ggsave(file.path(outpath, paste0("ridgeplot.pdf")), p_ridge, ...)
   }, error = function(e) {
     warning("RidgePlot GSEA Failed")
   })
 
     tryCatch({
-    ridgeplot
     p_heat <- heatplot(gse, showCategory = 10)
-    ggsave(file.path(outpath, paste0('heatplot.pdf')), p_heat, ...)
+    ggsave(file.path(outpath, paste0("heatplot.pdf")), p_heat, ...)
   }, error = function(e) {
     warning("Heatplot GSEA Failed")
   })
@@ -190,7 +189,7 @@ gsea_analysis <- function(
   geneList, outpath, 
   keyType = NULL,
 
-  msigdb_category = "H", 
+  msigdb_category = "H", # I"m going to depricate this
   ontology = "ALL"
   ) {
   require(SummarizedExperiment)
@@ -206,30 +205,30 @@ gsea_analysis <- function(
   if (is.null(keyType)) {keyType <- detect_gene_id_type(names(geneList), strip = TRUE)}
 
   # Output directory
-  dir.create(outpath, showWarnings = F, recursive = T)
-
-  # prep the gene list for kegg
-  entrez_names <- map_gene_ids(names(geneList), from = keyType, to = "ENTREZID", remove_missing = TRUE)
-  entrez_gL <- geneList
-  names(entrez_gL) <- entrez_names
-
-  # get the hallmark geneset
-  msigdbr_H <- msigdbr(species = "Homo sapiens", category = msigdb_category)
-  H_t2g <- msigdbr_H %>% dplyr::select(gs_name, entrez_gene)
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
 
   # Run GSEA on a few genesets
+  msigdb <- msigdbr(species = "Homo sapiens")
   gse_go <- gseGO(geneList, org.Hs.eg.db, keyType = keyType, ont = ontology, pvalueCutoff = Inf)
-  gse_msigdb <- GSEA(entrez_gL, TERM2GENE = H_t2g, minGSSize = 10, maxGSSize = 500, pvalueCutoff = Inf)
-  # gse_kegg <- gseKEGG(entrez_gL, organism = 'hsa', pvalueCutoff = Inf) # KEGG IS BROKEN
+
+  H_t2g <- msigdb %>%
+    filter(gs_cat == "H") %>%
+    dplyr::select(gs_name, gene_symbol)
+  gse_h <- GSEA(geneList, TERM2GENE = H_t2g, pvalueCutoff = Inf)
+
+  reactome_t2g <- msigdb %>%
+    filter(gs_cat == "C2" & gs_subcat == "CP:REACTOME") %>%
+    dplyr::select(gs_name, gene_symbol)
+  gse_reactome <- GSEA(geneList, TERM2GENE = reactome_t2g, pvalueCutoff = Inf)
 
   # gse list to loop over
   gse_list <- list(
-    GO = gse_go, 
-    msigdb = gse_msigdb
-    # KEGG = gse_kegg, # KEGG IS BROKEN
+    GO = gse_go,
+    H = gse_h,
+    REACTOME = gse_reactome
     )
 
-  for (idx in 1:length(gse_list)) {
+  for (idx in seq_along(gse_list)) {
     # get the gse and the name
     gse <- gse_list[[idx]]
     name <- names(gse_list)[idx]
@@ -237,15 +236,3 @@ gsea_analysis <- function(
   }
   return(gse_list)
 }
-
-
-
-
-
-
-
-
-
-
-
-

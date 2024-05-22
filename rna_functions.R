@@ -253,18 +253,7 @@ run_deseq <- function(
     dev.off()
 
     # make volcano plot
-    # volcanoP <- EnhancedVolcano(
-    #   res, lab=rownames(res), 
-    #   x = 'log2FoldChange', y = 'pvalue', 
-    #   title = name, subtitle = '', 
-    #   pCutoff = pCutoff, FCcutoff = FCcutoff
-    #   )
-    volcanoP <- plot_volcano(
-      res, 
-      title = name,
-      color = pvalue,
-      pCutoff = pCutoff
-    )
+    volcanoP <- plot_volcano(res, title = name, color = pvalue, pCutoff = pCutoff)
     ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
 
     # make gene list
@@ -289,22 +278,12 @@ run_deseq <- function(
   dev.off()
 
   # make volcano plot
-  volcanoP <- EnhancedVolcano(
-    res, lab=rownames(res), 
-    x = 'log2FoldChange', y = pvalue, 
-    title = name, subtitle = '',
-    pCutoff = pCutoff, FCcutoff = FCcutoff
-    )
+  volcanoP <- plot_volcano(res, title = name, color = pvalue, pCutoff = pCutoff)
   ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
 
   # make a heatmap
   sign_genes <- rownames(res)[res$pvalue < pCutoff & abs(res$log2FoldChange) > FCcutoff]
-  heatmapP <- plot_gene_heatmap(
-    dds[], 
-    title = name,
-    annotations = contrast[1],
-    normalize = "vst"
-    )
+  heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
   pdf(file.path(outpath, "dge_heatmap.pdf"))
   print(heatmapP)
   dev.off()
@@ -349,29 +328,25 @@ ovr_deseq_results <- function(dds, column, outpath, ...) {
   list_out <- list()
   for (lvl in lvls) {
     print(paste0('Testing ', column, ' ', lvl, ' versus rest'))
+    path <- file.path(outpath, paste0(column, '__',lvl,'_v_rest'))
+    dir.create(path, showWarnings = F, recursive = T)
     # Set our OVR analysis
     cond_ <- cond
     cond_[cond_ != lvl] <- 'rest'
     
     # create temporary dds objects for analysis
-    dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), 
-                                   design <- ~ condition)
+    dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- ~ condition)
     dds_ <- DESeq(dds_)
     res <- results(dds_, contrast = c('condition', lvl, 'rest'))
-
-    path <- file.path(outpath, paste0(column, '__',lvl,'_v_rest'))
-    dir.create(path, showWarnings = F, recursive = T)
-
+    
     saveRDS(dds_, file=paste0(path, '/deseqDataset_', column,'__',lvl,'_v_rest.rdata'))
     write.csv(res, file=paste0(path, '/dge_results_', column,'__',lvl,'_v_rest.csv'))
     
-    volcanoP <- EnhancedVolcano(res, lab=rownames(res), x = 'log2FoldChange', y = 'pvalue', title = paste0(column,'__',lvl,'_v_rest'), subtitle = '', ...)
+    volcanoP <- plot_volcano(res, title = paste0(column,'__',lvl,'_v_rest'))
     ggsave(paste0(path, '/volcanoPlot_', column,'__',lvl,'_v_rest.pdf'), volcanoP)
-
+    
     geneList <- get_fc_list(res)
     gse <- gsea_analysis(geneList, path)
-
-
 
     list_out[[lvl]] <- res
     }
