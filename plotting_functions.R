@@ -154,6 +154,7 @@ plot_enrichment_terms <- function(
   title = 'Enrichment Plot', 
   terms2plot = NULL, genes2plot = NULL, 
   qvalueCutoff = 0.2, 
+  max_terms = 20,
   ...
   ) {
   # get enrichment terms
@@ -174,8 +175,8 @@ plot_enrichment_terms <- function(
     }
 
   # cap at 20 terms
-  if (dim(enrichment_terms)[1] > 20) {
-    enrichment_terms <- head(enrichment_terms, 20)
+  if (dim(enrichment_terms)[1] > max_terms) {
+    enrichment_terms <- head(enrichment_terms, max_terms)
   }
 
   # plot enrichment
