@@ -18,7 +18,7 @@ Some useful scripts and templates I use
 * proteomics_functions.R: Functions for proteomics analysis (targeted proteomics)
 * wgcna_scripts.R: Functions for WGCNA analysis
 * converting_functions.R: Functions for converting data and annotations
-* signature_functions.R: Functions for signature analysis
+* signature_functions.R: Functions for -omics signature analysis
 
 ## Miscellaneous
 

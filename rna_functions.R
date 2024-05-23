@@ -479,7 +479,7 @@ summarize_experiment <- function(
 #   ...: additional arguments to pass to deseq for volcano plots
 # Outputs:
 #   results of differential expression analysis
-deseq_analysis <- function(dds, conditions, controls, outpath, ...) {
+deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
   # make directory
   dir.create(outpath, showWarnings = F, recursive = T)
 
@@ -495,13 +495,16 @@ deseq_analysis <- function(dds, conditions, controls, outpath, ...) {
     dir.create(file.path(outpath, condition), showWarnings = F, recursive = T)
 
     # make new dds object with no NAs
-    dds_ <- remove_na_variables(dds, c(controls, condition))
-
-    # make a stats table of the conditions and controls
-    df_stats <- as.data.frame(colData(dds_))
-    stats_table <- stats_table(df_stats, condition, vars = controls)
-    # save the stats table
-    write.csv(stats_table, file.path(outpath, condition, paste0(condition, '_stats_table.csv')))
+    if (!is.null(controls)) {
+      dds_ <- remove_na_variables(dds, c(controls, condition))
+      # make a stats table of the conditions and controls
+      df_stats <- as.data.frame(colData(dds_))
+      stats_table <- stats_table(df_stats, condition, vars = controls)
+      # save the stats table
+      write.csv(stats_table, file.path(outpath, condition, paste0(condition, '_stats_table.csv')))
+    } else {
+      dds_ <- remove_na_variables(dds, condition)
+    }
 
     # check if condition is a factor
     if (!is.factor(colData(dds_)[, condition])) {
@@ -509,6 +512,8 @@ deseq_analysis <- function(dds, conditions, controls, outpath, ...) {
       print(paste0('Converting ', condition, ' to factor'))
     }
 
+    if (!is.null(controls)) {
+      input_ <- paste0(condition)
     input_ <- paste0(append(controls, condition), collapse = ' + ')
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
