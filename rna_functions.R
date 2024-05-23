@@ -512,8 +512,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       print(paste0('Converting ', condition, ' to factor'))
     }
 
-    if (!is.null(controls)) {
-      input_ <- paste0(condition)
+    if (!is.null(controls)) {input_ <- paste0(condition)}
     input_ <- paste0(append(controls, condition), collapse = ' + ')
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
