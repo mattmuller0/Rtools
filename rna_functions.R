@@ -21,11 +21,11 @@ suppressMessages(library(ggbiplot))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/enrichment_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R')
-source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/filtering_functions.R')
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/enrichment_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/filtering_functions.R")
 
 #======================== CODE ========================#
 # Wilcoxan Ranked Sum testing on genes in two summarized experiments
@@ -53,7 +53,7 @@ gene_wilcox_test <- function(
     t() %>% 
     as.data.frame()
   count_data <- log2(count_data_raw + 1)
-  counts_data_raw <- normalize_counts(dds, method = 'log2-mor')
+  counts_data_raw <- normalize_counts(dds, method = "log2-mor")
   
   # Extract metadata from the DESeq object
   meta <- colData(dds) %>% 
@@ -100,14 +100,14 @@ gene_wilcox_test <- function(
   # make a volcano plot
   volcanoP <- EnhancedVolcano(
     res, lab=rownames(res), 
-    x = 'log2FoldChange', y = 'pvalue', 
-    title = 'Volcano Plot', subtitle = '',
+    x = "log2FoldChange", y = "pvalue", 
+    title = "Volcano Plot", subtitle = "",
     pCutoff = pCutoff, FCcutoff = FCcutoff
     )
   ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
 
   # get the fc list
-  fc <- get_fc_list(res, 'log2FoldChange')
+  fc <- get_fc_list(res, "log2FoldChange")
 
   # run enrichment
   gse <- rna_enrichment(fc, outpath)
@@ -129,10 +129,10 @@ run_limma <- function(
     condition, controls = NULL, 
     pCutoff = 0.05, FCcutoff = 0.5,
     ...) {
-    # make the directory if it doesn't exist
+    # make the directory if it doesn"t exist
     dir.create(outpath, showWarnings = F, recursive = T)
     
-    # Convert the counts matrix to a matrix if it's not already
+    # Convert the counts matrix to a matrix if it"s not already
     counts <- assay(se)
     if (!is.matrix(counts)) {
         counts <- as.matrix(counts)
@@ -167,8 +167,8 @@ run_limma <- function(
     # make a volcano plot
     volcanoP <- EnhancedVolcano(
         results, lab=rownames(results), 
-        x = 'logFC', y = 'P.Value', 
-        title = 'Volcano Plot', subtitle = '',
+        x = "logFC", y = "P.Value", 
+        title = "Volcano Plot", subtitle = "",
         pCutoff = pCutoff, FCcutoff = FCcutoff
     )
     ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
@@ -177,7 +177,7 @@ run_limma <- function(
     write.csv(results, file.path(outpath, "limma_results.csv"))
 
     # get the fc list
-    fc <- get_fc_list(results, 'logFC')
+    fc <- get_fc_list(results, "logFC")
 
     # run enrichment
     gse <- rna_enrichment(fc, outpath)
@@ -192,7 +192,7 @@ run_limma <- function(
 #    method: correlation method to use
 #  Outputs:
 #    Correlation results for each gene
-calculate_correlations <- function(dds, condition, normalize = 'mor', method="spearman", ...) {
+calculate_correlations <- function(dds, condition, normalize = "mor", method="spearman", ...) {
   # Extract the condition vector
   condition <- colData(dds)[, condition] %>% as.numeric()
   
@@ -236,7 +236,7 @@ run_deseq <- function(
   require(ggplot2)
 
   # This function will run differential expression on a premade dds object.
-  # Gives most metrics you'll need, and also returns the results
+  # Gives most metrics you"ll need, and also returns the results
   dir.create(outpath, showWarnings = F, recursive = T)
   message("Running DESeq2")
   dds <- DESeq(dds, ...)
@@ -245,7 +245,7 @@ run_deseq <- function(
   res <- results(dds)
   
   if (is.vector(contrast)) {
-    name <- paste0(contrast[1], '__', contrast[2], '_vs_', contrast[3])
+    name <- paste0(contrast[1], "__", contrast[2], "_vs_", contrast[3])
     res <- results(dds, contrast=contrast)
     resLFC <- lfcShrink(dds, coef=length(resultsNames(dds)), type="apeglm")
     pdf(file.path(outpath, "MAplot.pdf"))
@@ -327,23 +327,23 @@ ovr_deseq_results <- function(dds, column, outpath, ...) {
   # but it works for now so oh well lol
   list_out <- list()
   for (lvl in lvls) {
-    print(paste0('Testing ', column, ' ', lvl, ' versus rest'))
-    path <- file.path(outpath, paste0(column, '__',lvl,'_v_rest'))
+    print(paste0("Testing ", column, " ", lvl, " versus rest"))
+    path <- file.path(outpath, paste0(column, "__",lvl,"_v_rest"))
     dir.create(path, showWarnings = F, recursive = T)
     # Set our OVR analysis
     cond_ <- cond
-    cond_[cond_ != lvl] <- 'rest'
+    cond_[cond_ != lvl] <- "rest"
     
     # create temporary dds objects for analysis
     dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- ~ condition)
     dds_ <- DESeq(dds_)
-    res <- results(dds_, contrast = c('condition', lvl, 'rest'))
+    res <- results(dds_, contrast = c("condition", lvl, "rest"))
     
-    saveRDS(dds_, file=paste0(path, '/deseqDataset_', column,'__',lvl,'_v_rest.rdata'))
-    write.csv(res, file=paste0(path, '/dge_results_', column,'__',lvl,'_v_rest.csv'))
+    saveRDS(dds_, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rdata"))
+    write.csv(res, file=paste0(path, "/dge_results_", column,"__",lvl,"_v_rest.csv"))
     
-    volcanoP <- plot_volcano(res, title = paste0(column,'__',lvl,'_v_rest'))
-    ggsave(paste0(path, '/volcanoPlot_', column,'__',lvl,'_v_rest.pdf'), volcanoP)
+    volcanoP <- plot_volcano(res, title = paste0(column,"__",lvl,"_v_rest"))
+    ggsave(paste0(path, "/volcanoPlot_", column,"__",lvl,"_v_rest.pdf"), volcanoP)
     
     geneList <- get_fc_list(res)
     gse <- gsea_analysis(geneList, path)
@@ -393,7 +393,7 @@ summarize_deseq_experiment <- function(
   padj_summary <- data.frame()
   for (padj_cutoff in padj_cutoffs) {
     padj_summary <- rbind(
-      padj_summary, data.frame(sign_cutoff = paste0('padj < ', padj_cutoff), 
+      padj_summary, data.frame(sign_cutoff = paste0("padj < ", padj_cutoff), 
       n_genes = filter(as.data.frame(results), padj < padj_cutoff) %>% nrow(), 
       n_up = filter(as.data.frame(results), padj < padj_cutoff & log2FoldChange > logFC_cutoff) %>% nrow(),
       n_down = filter(as.data.frame(results), padj < padj_cutoff & log2FoldChange < logFC_cutoff) %>% nrow())
@@ -405,7 +405,7 @@ summarize_deseq_experiment <- function(
   for (pvalue_cutoff in pvalue_cutoffs) {
     pvalue_summary <- rbind(
       pvalue_summary, 
-      data.frame(sign_cutoff = paste0('pvalue < ', pvalue_cutoff), n_genes = filter(as.data.frame(results), pvalue < pvalue_cutoff) %>% nrow(),
+      data.frame(sign_cutoff = paste0("pvalue < ", pvalue_cutoff), n_genes = filter(as.data.frame(results), pvalue < pvalue_cutoff) %>% nrow(),
       n_up = filter(as.data.frame(results), pvalue < pvalue_cutoff & log2FoldChange > logFC_cutoff) %>% nrow(),
       n_down = filter(as.data.frame(results), pvalue < pvalue_cutoff & log2FoldChange < -logFC_cutoff) %>% nrow())
       )
@@ -429,9 +429,9 @@ summarize_deseq_experiment <- function(
 #   summary of results
 summarize_experiment <- function(
   results, 
-  logFC_column = 'log2FoldChange',
-  pvalue_column = 'pvalue',
-  padj_column = 'padj',
+  logFC_column = "log2FoldChange",
+  pvalue_column = "pvalue",
+  padj_column = "padj",
   pvalue_cutoffs = c(0.01, 0.05, 0.1), 
   padj_cutoffs = c(0.05, 0.1, 0.2), 
   logFC_cutoff = 0
@@ -448,7 +448,7 @@ summarize_experiment <- function(
   lapply(pvalue_cutoffs, function(pvalue_cutoff) {
     summary <<- summary %>% 
       add_row(
-        variable = 'pvalue',
+        variable = "pvalue",
         cutoff = pvalue_cutoff,
         fc_cutoff = logFC_cutoff,
         n_sig = sum(results[[pvalue_column]] < pvalue_cutoff),
@@ -459,7 +459,7 @@ summarize_experiment <- function(
   lapply(padj_cutoffs, function(padj_cutoff) {
     summary <<- summary %>% 
       add_row(
-        variable = 'padj',
+        variable = "padj",
         cutoff = padj_cutoff,
         fc_cutoff = logFC_cutoff,
         n_sig = sum(results[[padj_column]] < padj_cutoff),
@@ -501,7 +501,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       df_stats <- as.data.frame(colData(dds_))
       stats_table <- stats_table(df_stats, condition, vars = controls)
       # save the stats table
-      write.csv(stats_table, file.path(outpath, condition, paste0(condition, '_stats_table.csv')))
+      write.csv(stats_table, file.path(outpath, condition, paste0(condition, "_stats_table.csv")))
     } else {
       dds_ <- remove_na_variables(dds, condition)
     }
@@ -509,18 +509,19 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     # check if condition is a factor
     if (!is.factor(colData(dds_)[, condition])) {
       colData(dds_)[, condition] <- as.factor(colData(dds_)[, condition])
-      print(paste0('Converting ', condition, ' to factor'))
+      print(paste0("Converting ", condition, " to factor"))
     }
 
     if (!is.null(controls)) {input_ <- paste0(condition)}
-    input_ <- paste0(append(controls, condition), collapse = ' + ')
+    input_ <- paste0(append(controls, condition), collapse = " + ")
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
     levels <- levels(colData(dds_)[, condition])
 
-    message(paste0('Running Analysis on ', condition))
-    sink(file.path(outpath, condition, paste0(condition, '_deseq_analysis_summary.log')))
-    sink(file.path(outpath, condition, paste0(condition, '_deseq_analysis_summary.log'), type = 'message'))
+    message(paste0("Running Analysis on ", condition))
+    logg <- file(paste0(outpath, condition, "/", condition, "_deseq_analysis_summary.log"), "wt")
+    sink(logg)
+    sink(logg, type = "message")
     # if there are more than 2 levels, run OVR analysis
     if (length(levels) > 2) {
       res <- ovr_deseq_results(dds_, condition, file.path(outpath, condition), ...)
@@ -549,7 +550,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     # if there are only 2 levels, run normal deseq
     if (length(levels) == 2) {
       # flip levels if they are 0 and 1
-      # if(setequal(levels, c('0', '1'))) {levels <- c('1', '0')}
+      # if(setequal(levels, c("0", "1"))) {levels <- c("1", "0")}
 
       # get contrast and run deseq
       contrast <- c(condition, levels[2], levels[1])
@@ -571,19 +572,19 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
 
     # if there is only one level, skip
     if (length(levels) == 1) {
-      message(paste0('Skipping ', condition, ' because there is only one level'))
+      message(paste0("Skipping ", condition, " because there is only one level"))
     }
 
     # if there are no levels, skip
     if (length(levels) == 0) {
-      message(paste0('Skipping ', condition, ' because there are no levels'))
+      message(paste0("Skipping ", condition, " because there are no levels"))
     }
-  sink(type = 'message')
+  sink(type = "message")
   sink()
-  file.show(file.path(outpath, condition, paste0(condition, '_deseq_analysis_summary.log')))
+  file.show(logg)
   }
   # save summary dataframe
-  write.csv(summary_df, file.path(outpath, 'deseq_analysis_summary.csv'), row.names = FALSE)
+  write.csv(summary_df, file.path(outpath, "deseq_analysis_summary.csv"), row.names = FALSE)
   return(analysis_list)
 }
 
@@ -620,7 +621,7 @@ test_dds <- function(formula, dds, rstatix_test = wilcox_test, ...) {
 
         # add the gene to the formula as the response using reformulate
         formula <- reformulate(
-          response = 'x',
+          response = "x",
           termlabels = attr(terms(formula), "term.labels")
           )
 
@@ -635,13 +636,9 @@ test_dds <- function(formula, dds, rstatix_test = wilcox_test, ...) {
           ...
           )
 
-        # get the basemean
+        # get the stats
         basemean <- 2^mean(x)
-
-        # get the log2FC
         log2FC <- mean(x[meta[, condition] == conditions[2]]) - mean(x[meta[, condition] == conditions[1]])
-
-        # add the basemean and log2FC to the test
         test$basemean <- basemean
         test$log2FC <- log2FC
         
