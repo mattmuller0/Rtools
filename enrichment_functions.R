@@ -141,6 +141,7 @@ save_gse <- function(gse, outpath, ...) {
       slice(1:10) %>%
       mutate(
         Description = gsub("^(REACTOME_|GO_|HALLMARK_)", "", Description),
+        Description = gsub("_", " ", Description),
         Description = factor(stringr::str_wrap(Description, 40))
         )
 
