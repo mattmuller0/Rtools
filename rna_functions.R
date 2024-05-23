@@ -516,10 +516,11 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     dds_ <- DESeqDataSet(dds_, design = design_matr)
     levels <- levels(colData(dds_)[, condition])
 
-    message(paste0("Running Analysis on ", condition))
     logg <- file(file.path(outpath, condition, paste0(condition, "_analysis_summary.log")), open = "wt")
     sink(logg)
     sink(logg, type = "message")
+    
+    message(paste0("Running Analysis on ", condition))
     # if there are more than 2 levels, run OVR analysis
     if (length(levels) > 2) {
       res <- ovr_deseq_results(dds_, condition, file.path(outpath, condition), ...)
@@ -580,7 +581,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
   sink(type = "message")
   sink()
   close(logg)
-  readLines(paste0(outpath, condition, "/", condition, "_deseq_analysis_summary.log"))
+  readLines(file.path(outpath, condition, paste0(condition, "_analysis_summary.log")))
   }
   # save summary dataframe
   write.csv(summary_df, file.path(outpath, "deseq_analysis_summary.csv"), row.names = FALSE)
