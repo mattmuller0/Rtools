@@ -147,13 +147,13 @@ save_gse <- function(gse, outpath, ...) {
       slice(1:10)
 
     # Barplot
-    gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue)) +
+    gseBar <- ggplot(gse_bar, aes(NES, stringr::str_wrap(fct_reorder(Description, NES), 40), fill=qvalue)) +
       geom_col(orientation = "y") +
       scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
       labs(title="Enrichment Barplot", y = NULL) +
       theme_classic2()
     ggsave(file.path(outpath, paste0("barplot_all.pdf")), gseBar, ...)
-    gseBar_bp <- ggplot(gse_bar_bp, aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
+    gseBar_bp <- ggplot(gse_bar_bp, aes(NES , stringr::str_wrap(fct_reorder(Description, NES), 40), fill=qvalue)) +
       geom_col(orientation = "y") +
       scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
       labs(title="Enrichment Barplot", y = NULL) +

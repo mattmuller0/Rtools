@@ -160,7 +160,8 @@ plot_enrichment_terms <- function(
   # get enrichment terms
   enrichment_terms <- gse@result %>% 
     as.data.frame() %>%
-    dplyr::arrange(qvalue)
+    dplyr::arrange(qvalue)  %>%
+    mutate(Description = stringr::str_wrap(Description, 40))
 
   if (!is.null(terms2plot)) {
     print(paste0('Plotting ', length(terms2plot), ' terms'))
