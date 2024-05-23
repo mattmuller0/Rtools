@@ -113,7 +113,7 @@ save_gse <- function(gse, outpath, ...) {
 
   # save the gse object
   write.csv(gse@result, file.path(outpath, "enrichment_results.csv"), quote = TRUE, row.names = FALSE)
-  write.csv(filter(gse@results, qvalue < 0.1), file.path(outpath, "enrichment_results_sig.csv"), quote = TRUE, row.names = FALSE)
+  write.csv(filter(gse@result, qvalue < 0.1), file.path(outpath, "enrichment_results_sig.csv"), quote = TRUE, row.names = FALSE)
   saveRDS(gse, file.path(outpath, "enrichment_results.rds"))
 
   tryCatch({
@@ -146,7 +146,13 @@ save_gse <- function(gse, outpath, ...) {
       scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
       labs(title="Enrichment Barplot", y = NULL) +
       theme_classic2()
-    ggsave(file.path(outpath, paste0("barplot.pdf")), gseBar, ...)
+    ggsave(file.path(outpath, paste0("barplot_all.pdf")), gseBar, ...)
+    gseBar_bp <- ggplot(filter(gse_bar, ONTOLOGY == "BP"), aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
+      geom_col(orientation = "y") +
+      scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
+      labs(title="Enrichment Barplot", y = NULL) +
+      theme_classic2()
+    ggsave(file.path(outpath, paste0("barplot_BP.pdf")), gseBar_bp, ...)
   }, error = function(e) {
     warning("GSEA Barplot Failed")
   })
