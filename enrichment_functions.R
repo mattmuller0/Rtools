@@ -139,6 +139,12 @@ save_gse <- function(gse, outpath, ...) {
       group_by(sign(NES)) %>%
       arrange(qvalue) %>%
       slice(1:10)
+    gse_bar_bp <- gse %>%
+      as.data.frame() %>%
+      filter(ONTOLOGY == "BP") %>%
+      group_by(sign(NES)) %>%
+      arrange(qvalue) %>%
+      slice(1:10)
 
     # Barplot
     gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue)) +
@@ -147,7 +153,7 @@ save_gse <- function(gse, outpath, ...) {
       labs(title="Enrichment Barplot", y = NULL) +
       theme_classic2()
     ggsave(file.path(outpath, paste0("barplot_all.pdf")), gseBar, ...)
-    gseBar_bp <- ggplot(filter(gse_bar, ONTOLOGY == "BP"), aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
+    gseBar_bp <- ggplot(gse_bar_bp, aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
       geom_col(orientation = "y") +
       scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
       labs(title="Enrichment Barplot", y = NULL) +
@@ -159,7 +165,7 @@ save_gse <- function(gse, outpath, ...) {
 
   tryCatch({
     # Platelet Termed Barplot
-    p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "immune", "plat", "coag"))
+    p_terms <- plot_enrichment_terms(gse, terms2plot = c("inflam", "plat", "coag"), max_terms = 12)
     ggsave(file.path(outpath, paste0("barplot_terms.pdf")), p_terms, ...)
   }, error = function(e) {
     warning("GSEA Term Specific Barplot Failed")
