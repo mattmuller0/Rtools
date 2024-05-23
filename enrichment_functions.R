@@ -138,13 +138,12 @@ save_gse <- function(gse, outpath, ...) {
       as.data.frame() %>%
       group_by(sign(NES)) %>%
       arrange(qvalue) %>%
-      slice(1:10)
-    gse_bar_bp <- gse %>%
-      as.data.frame() %>%
-      filter(ONTOLOGY == "BP") %>%
-      group_by(sign(NES)) %>%
-      arrange(qvalue) %>%
-      slice(1:10)
+      slice(1:10) %>%
+      mutate(
+        Description = gsub("^(REACTOME_|GO_|HALLMARK_)", "", Description),
+        Description = gsub("_", " ", Description),
+        Description = factor(stringr::str_wrap(Description, 40))
+        )
 
     # Barplot
     gseBar <- ggplot(gse_bar, aes(NES, fct_reorder(Description, NES), fill=qvalue)) +
@@ -153,6 +152,24 @@ save_gse <- function(gse, outpath, ...) {
       labs(title="Enrichment Barplot", y = NULL) +
       theme_classic2()
     ggsave(file.path(outpath, paste0("barplot_all.pdf")), gseBar, ...)
+  }, error = function(e) {
+    warning("GSEA Barplot Failed")
+  })
+
+  tryCatch({
+    # Barplot data
+    gse_bar_bp <- gse %>%
+      as.data.frame() %>%
+      filter(ONTOLOGY == "BP") %>%
+      group_by(sign(NES)) %>%
+      arrange(qvalue) %>%
+      slice(1:10) %>%
+      mutate(
+        Description = gsub("^(REACTOME_|GO_|HALLMARK_)", "", Description),
+        Description = gsub("_", " ", Description),
+        Description = factor(stringr::str_wrap(Description, 40))
+        )
+
     gseBar_bp <- ggplot(gse_bar_bp, aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
       geom_col(orientation = "y") +
       scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
@@ -160,7 +177,15 @@ save_gse <- function(gse, outpath, ...) {
       theme_classic2()
     ggsave(file.path(outpath, paste0("barplot_BP.pdf")), gseBar_bp, ...)
   }, error = function(e) {
-    warning("GSEA Barplot Failed")
+    warning("GSEA Barplot BP Failed")
+  })
+
+  tryCatch({
+    # cnetplot
+    cnet <- cnetplot(gse, node_label="category", cex_label_gene = 0.8)
+    ggsave(file.path(outpath, paste0("cnetplot.pdf")), cnet, ...)
+  }, error = function(e) {
+    warning("Cnetplot GSEA Plots Failed")
   })
 
   tryCatch({
