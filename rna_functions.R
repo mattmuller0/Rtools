@@ -481,18 +481,16 @@ summarize_experiment <- function(
 #   results of differential expression analysis
 deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
   # make directory
-  dir.create(outpath, showWarnings = F, recursive = T)
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
 
   # make list to store results
   analysis_list <- list()
-  
-  # make summary dataframe 
+
   summary_df <- data.frame()
-  
   # make design matrix
   for (condition in conditions) {
     # make directory for condition
-    dir.create(file.path(outpath, condition), showWarnings = F, recursive = T)
+    dir.create(file.path(outpath, condition), showWarnings = FALSE, recursive = TRUE)
 
     # make new dds object with no NAs
     if (!is.null(controls)) {
@@ -519,7 +517,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     levels <- levels(colData(dds_)[, condition])
 
     message(paste0("Running Analysis on ", condition))
-    logg <- file(paste0(outpath, condition, "/", condition, "_deseq_analysis_summary.log"), "wt")
+    logg <- file(file.path(outpath, condition, paste0(condition, "_analysis_summary.log")), open = "wt")
     sink(logg)
     sink(logg, type = "message")
     # if there are more than 2 levels, run OVR analysis
@@ -538,13 +536,13 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       summary <- do.call(rbind, summary)
 
       # reorder columns so condition is first
-      summary <- summary[, c(ncol(summary), 1:(ncol(summary)-1))]
+      summary <- summary[, c(ncol(summary), 1:(ncol(summary) - 1))]
 
       # add summary to dataframe
       summary_df <- rbind(summary_df, summary)
 
       # add results to list
-      analysis_list[[condition]] = res
+      analysis_list[[condition]] <- res
     }
 
     # if there are only 2 levels, run normal deseq
@@ -561,13 +559,13 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       summary$condition <- condition
 
       # reorder columns so condition is first
-      summary <- summary[, c(ncol(summary), 1:(ncol(summary)-1))]
+      summary <- summary[, c(ncol(summary), 1:(ncol(summary) - 1))]
 
       # add summary to dataframe
       summary_df <- rbind(summary_df, summary)
 
       # add results to list
-      analysis_list[[condition]] = res
+      analysis_list[[condition]] <- res
     }
 
     # if there is only one level, skip
@@ -581,7 +579,8 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     }
   sink(type = "message")
   sink()
-  file.show(logg)
+  close(logg)
+  readLines(paste0(outpath, condition, "/", condition, "_deseq_analysis_summary.log"))
   }
   # save summary dataframe
   write.csv(summary_df, file.path(outpath, "deseq_analysis_summary.csv"), row.names = FALSE)
