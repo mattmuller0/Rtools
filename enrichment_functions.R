@@ -163,7 +163,12 @@ save_gse <- function(gse, outpath, ...) {
       filter(ONTOLOGY == "BP") %>%
       group_by(sign(NES)) %>%
       arrange(qvalue) %>%
-      slice(1:10)
+      slice(1:10) %>%
+      mutate(
+        Description = gsub("^(REACTOME_|GO_|HALLMARK_)", "", Description),
+        Description = gsub("_", " ", Description),
+        Description = factor(stringr::str_wrap(Description, 40))
+        )
 
     gseBar_bp <- ggplot(gse_bar_bp, aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
       geom_col(orientation = "y") +

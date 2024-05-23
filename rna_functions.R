@@ -520,6 +520,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
 
     message(paste0('Running Analysis on ', condition))
     sink(file.path(outpath, condition, paste0(condition, '_deseq_analysis_summary.log')))
+    sink(file.path(outpath, condition, paste0(condition, '_deseq_analysis_summary.log'), type = 'message'))
     # if there are more than 2 levels, run OVR analysis
     if (length(levels) > 2) {
       res <- ovr_deseq_results(dds_, condition, file.path(outpath, condition), ...)
@@ -577,8 +578,9 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     if (length(levels) == 0) {
       message(paste0('Skipping ', condition, ' because there are no levels'))
     }
-
+  sink(type = 'message')
   sink()
+  file.show(file.path(outpath, condition, paste0(condition, '_deseq_analysis_summary.log')))
   }
   # save summary dataframe
   write.csv(summary_df, file.path(outpath, 'deseq_analysis_summary.csv'), row.names = FALSE)
