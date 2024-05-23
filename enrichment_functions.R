@@ -146,7 +146,13 @@ save_gse <- function(gse, outpath, ...) {
       scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
       labs(title="Enrichment Barplot", y = NULL) +
       theme_classic2()
-    ggsave(file.path(outpath, paste0("barplot.pdf")), gseBar, ...)
+    ggsave(file.path(outpath, paste0("barplot_all.pdf")), gseBar, ...)
+    gseBar_bp <- ggplot(filter(gse_bar, ONTOLOGY == "BP"), aes(NES , fct_reorder(Description, NES), fill=qvalue)) +
+      geom_col(orientation = "y") +
+      scale_fill_continuous(low="red", high="blue", guide=guide_colorbar(reverse=TRUE)) +
+      labs(title="Enrichment Barplot", y = NULL) +
+      theme_classic2()
+    ggsave(file.path(outpath, paste0("barplot_BP.pdf")), gseBar_bp, ...)
   }, error = function(e) {
     warning("GSEA Barplot Failed")
   })
