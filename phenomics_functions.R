@@ -50,7 +50,7 @@ make_phenotypes <- function(
     encoding
     ) {
     # ensure the required columns are present
-    reqs <- c("dnx_hesin_id", "Participant ID", "admidate", "field", "value")
+    reqs <- c("Participant ID", "field", "value")
     if (!all(reqs %in% colnames(hesin))) {
         stop(glue::glue("Missing required columns in hesin data\n[{paste(reqs, collapse = ", ")}]"))
     }
