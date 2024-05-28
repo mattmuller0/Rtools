@@ -50,7 +50,7 @@ make_phenotypes <- function(
     encoding
     ) {
     # ensure the required columns are present
-    reqs <- c("Participant ID", "field", "value")
+    reqs <- c("Participant ID", "dnx_hesin_id", "field", "value")
     if (!all(reqs %in% colnames(hesin))) {
         stop(glue::glue("Missing required columns in hesin data\n[{paste(reqs, collapse = ", ")}]"))
     }
@@ -75,7 +75,7 @@ make_phenotypes <- function(
                 filter(field == fields[j]) %>%
                 filter(grepl(v_reg, value)) %>%
                 mutate(phenotype = k) %>%
-                select(dnx_hesin_id, `Participant ID`, admidate, phenotype, field, value)
+                select(`Participant ID`, dnx_hesin_id, phenotype, field, value)
             print(glue("        N: {nrow(o[[j]])}"))
         }
         out[[i]] <- do.call(rbind, o)
