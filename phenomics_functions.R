@@ -41,7 +41,7 @@ make_compsite_coding_csv <- function(
 # Function to make a phenotype from the composite encoding
 #   Args:
 #     hesin: data frame of hesin data pivoted longer
-#            [dnx_hesin_id, Participant ID, admidate, field, value]
+#            [dnx_hesin_id, Participant ID, field, value]
 #     encoding: data frame of composite encoding [key, field, value]
 #   Outputs:
 #     data frame with composite encoding
@@ -50,7 +50,7 @@ make_phenotypes <- function(
     encoding
     ) {
     # ensure the required columns are present
-    reqs <- c("dnx_hesin_id", "Participant ID", "admidate", "field", "value")
+    reqs <- c("Participant ID", "field", "value")
     if (!all(reqs %in% colnames(hesin))) {
         stop(glue::glue("Missing required columns in hesin data\n[{paste(reqs, collapse = ", ")}]"))
     }
@@ -74,8 +74,7 @@ make_phenotypes <- function(
             o[[j]] <- hesin %>%
                 filter(field == fields[j]) %>%
                 filter(grepl(v_reg, value)) %>%
-                mutate(phenotype = k) %>%
-                select(dnx_hesin_id, `Participant ID`, admidate, phenotype, field, value)
+                mutate(phenotype = k)
             print(glue("        N: {nrow(o[[j]])}"))
         }
         out[[i]] <- do.call(rbind, o)
