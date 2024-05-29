@@ -52,11 +52,11 @@ make_phenotypes <- function(
     # ensure the required columns are present
     reqs <- c("Participant ID", "field", "value")
     if (!all(reqs %in% colnames(hesin))) {
-        stop(glue::glue("Missing required columns in hesin data\n[{paste(reqs, collapse = ", ")}]"))
+        stop(glue::glue("Missing required columns in hesin data\n[{paste0(reqs, collapse = ", ")}]"))
     }
     reqs <- c("key", "field", "value")
     if (!all(reqs %in% colnames(encoding))) {
-        stop(glue::glue("Missing required columns in encoding data\n[{paste(reqs, collapse = ", ")}]"))
+        stop(glue::glue("Missing required columns in encoding data\n[{paste0(reqs, collapse = ", ")}]"))
     }
 
     out <- list()
