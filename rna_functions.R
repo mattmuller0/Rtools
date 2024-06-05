@@ -126,12 +126,12 @@ gene_wilcox_test <- function(
 #   data frame of p-values and adjusted p-values
 run_limma <- function(
     se, outpath,
-    condition, controls = NULL, 
+    condition, controls = NULL,
     pCutoff = 0.05, FCcutoff = 0.5,
     ...) {
     # make the directory if it doesn"t exist
-    dir.create(outpath, showWarnings = F, recursive = T)
-    
+    dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
+
     # Convert the counts matrix to a matrix if it"s not already
     counts <- assay(se)
     if (!is.matrix(counts)) {
@@ -165,12 +165,7 @@ run_limma <- function(
     results <- topTable(fit, coef = 2, number = Inf, ...)
 
     # make a volcano plot
-    volcanoP <- EnhancedVolcano(
-        results, lab=rownames(results), 
-        x = "logFC", y = "P.Value", 
-        title = "Volcano Plot", subtitle = "",
-        pCutoff = pCutoff, FCcutoff = FCcutoff
-    )
+    volcanoP <- plot_volcano(results, title = "limma", color = "adj.P.Val", pCutoff = pCutoff)
     ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
 
     # save the results
@@ -180,7 +175,7 @@ run_limma <- function(
     fc <- get_fc_list(results, "logFC")
 
     # run enrichment
-    gse <- rna_enrichment(fc, outpath)
+    gse <- gsea_analysis(fc, outpath)
 
     return(results)
 }
