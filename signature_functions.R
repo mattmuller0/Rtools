@@ -74,7 +74,7 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
             stop(glue::glue("Data type {data_type} not supported."))
         }
         # save results
-        ggsave(glue::glue("{outdir}/{col}_vs_{x}.png"), plot_results)
+        ggsave(glue::glue("{outdir}/{col}_vs_{x}.pdf"), plot_results)
         stats_list[[x]] <- stats_results
         plot_list[[x]] <- plot_results
         }
