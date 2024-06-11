@@ -251,6 +251,17 @@ run_deseq <- function(
     volcanoP <- plot_volcano(res, title = name, color = pvalue, pCutoff = pCutoff)
     ggsave(file.path(outpath, "volcanoPlot.pdf"), volcanoP)
 
+    # make a heatmap of the significant genes
+    tryCatch({
+      sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
+      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
+      pdf(file.path(outpath, "dge_heatmap.pdf"))
+      print(heatmapP)
+      dev.off()
+    }, error = function(e) {
+      message("An error occurred while generating the heatmap: ", conditionMessage(e))
+    })
+
     # make gene list
     geneList <- get_fc_list(res)
     gse_list <- gsea_analysis(geneList, outpath)
@@ -303,7 +314,7 @@ run_deseq <- function(
 #   outpath: path to push results to
 # Outputs:
 #   OVR results for each level of column of interest
-ovr_deseq_results <- function(dds, column, outpath, ...) {
+ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   require(DESeq2)
   require(clusterProfiler)
   require(DOSE)
@@ -330,15 +341,27 @@ ovr_deseq_results <- function(dds, column, outpath, ...) {
     cond_[cond_ != lvl] <- "rest"
     
     # create temporary dds objects for analysis
-    dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- ~ condition)
+    input_ <- ifelse(!is.null(controls), paste0(column), paste0(append(controls, column), collapse = " + "))
+    dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
     dds_ <- DESeq(dds_)
     res <- results(dds_, contrast = c("condition", lvl, "rest"))
     
-    saveRDS(dds_, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rdata"))
+    saveRDS(dds_, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
     write.csv(res, file=paste0(path, "/dge_results_", column,"__",lvl,"_v_rest.csv"))
     
     volcanoP <- plot_volcano(res, title = paste0(column,"__",lvl,"_v_rest"))
     ggsave(paste0(path, "/volcanoPlot_", column,"__",lvl,"_v_rest.pdf"), volcanoP)
+
+    # make a heatmap of the significant genes
+    tryCatch({
+      sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
+      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
+      pdf(file.path(outpath, "dge_heatmap.pdf"))
+      print(heatmapP)
+      dev.off()
+    }, error = function(e) {
+      message("An error occurred while generating the heatmap: ", conditionMessage(e))
+    })
     
     geneList <- get_fc_list(res)
     gse <- gsea_analysis(geneList, path)
@@ -503,10 +526,10 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     if (!is.factor(colData(dds_)[, condition])) {
       colData(dds_)[, condition] <- as.factor(colData(dds_)[, condition])
       print(paste0("Converting ", condition, " to factor"))
+      print(paste0("Levels: ", paste0(levels(colData(dds_)[, condition]), collapse = ", ")))
     }
 
-    if (!is.null(controls)) {input_ <- paste0(condition)}
-    input_ <- paste0(append(controls, condition), collapse = " + ")
+    input_ <- ifelse(!is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
     levels <- levels(colData(dds_)[, condition])
@@ -516,6 +539,16 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
     sink(logg, type = "message")
     
     message(paste0("Running Analysis on ", condition))
+
+    # make a pca plot
+    tryCatch({
+      pcs <- prcomp(t(normalize_counts(dds_, method = "vst")))
+      pca_plot <- ggbiplot(pcs, groups = colData(dds_)[, condition], ellipse = TRUE, var.axes = FALSE)
+      ggsave(file.path(outpath, condition, "pca_plot.pdf"), pca_plot)
+    }, error = function(e) {
+      message("An error occurred while generating the PCA plot: ", conditionMessage(e))
+    })
+
     # if there are more than 2 levels, run OVR analysis
     if (length(levels) > 2) {
       res <- ovr_deseq_results(dds_, condition, file.path(outpath, condition), ...)
