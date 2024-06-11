@@ -254,7 +254,8 @@ run_deseq <- function(
     # make a heatmap of the significant genes
     tryCatch({
       sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
-      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
+      is.na(sign_genes) <- FALSE # some error handing for outliers as NA
+      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst", show_row_names = FALSE, show_column_names = FALSE)
       pdf(file.path(outpath, "dge_heatmap.pdf"))
       print(heatmapP)
       dev.off()
@@ -542,7 +543,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
 
     # make a pca plot
     tryCatch({
-      pcs <- prcomp(t(normalize_counts(dds_, method = "vst")))
+      pcs <- prcomp(scale(t(normalize_counts(dds_, method = "vst"))))
       pca_plot <- ggbiplot(pcs, groups = colData(dds_)[, condition], ellipse = TRUE, var.axes = FALSE)
       ggsave(file.path(outpath, condition, "pca_plot.pdf"), pca_plot)
     }, error = function(e) {
