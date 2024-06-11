@@ -114,3 +114,22 @@ search_vector <- function(vector, string, ...) {
   return(idx)
   return(vector)
 }
+
+drop_na_rows <- function(data, percent_allowed_missing) {
+  if (percent_allowed_missing < 0 | percent_allowed_missing > 1) {
+    stop("percent_allowed_missing must be between 0 and 1")
+  }
+  max_na_count <- percent_allowed_missing * ncol(data)
+  data %>%
+    rowwise() %>%
+    filter(sum(is.na(c_across(everything()))) <= max_na_count) %>%
+    ungroup()
+}
+
+drop_na_cols <- function(data, percent_allowed_missing) {
+  if (percent_allowed_missing < 0 | percent_allowed_missing > 1) {
+    stop("percent_allowed_missing must be between 0 and 1")
+  }
+  max_na_count <- percent_allowed_missing * nrow(data)
+  data %>% select(where(~ sum(is.na(.)) <= max_na_count))
+}

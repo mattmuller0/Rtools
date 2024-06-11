@@ -533,6 +533,7 @@ plot_volcano <- function(
     title = NULL,
 
     pCutoff = 0.05,
+    fcCutOff = NULL,
 
     xlim = c(min(dge[, x])-0.5, max(dge[, x], na.rm = TRUE)+0.5),
     ylim = c(0, max(-log10(dge[, y]), na.rm = TRUE)*1.25)
@@ -547,18 +548,29 @@ plot_volcano <- function(
 
     # deal with NA's
     dge[, color] <- ifelse(is.na(dge[, color]), 1, dge[, color])
+    if (!is.null(fcCutOff)) {
+        dge$signf <- case_when(
+            dge[, color] < pCutoff & abs(dge[, x]) > fcCutOff ~ paste0(color, ' < ', pCutoff, ' & |', x, '| > ', fcCutOff),
+            TRUE ~ 'NS'
+        )
+    } else {
+        dge$signf <- case_when(
+            dge[, color] < pCutoff ~ paste0(color, ' < ', pCutoff),
+            TRUE ~ 'NS'
+        )
+    }
 
-    out <- ggplot(dge, 
+    out <- ggplot(dge,
         aes(
-            x = !!sym(x), 
-            y = -log10(!!sym(y)), 
-            color = !!sym(color) < pCutoff
+            x = !!sym(x),
+            y = -log10(!!sym(y)),
+            color = signf
             )) +
         geom_point() +
-        scale_color_manual(values = c('grey', 'red'), labels = c('NS', paste0(color, ' < 0.05'))) +
+        scale_color_manual(values = c('grey', 'red')) +
         geom_text_repel(
           data = head(dge[order(dge[, y]), ], 100),
-          aes(label = !!sym(labels)), 
+          aes(label = !!sym(labels)),
           show.legend = FALSE
           ) +
         theme_matt() +
