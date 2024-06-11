@@ -254,7 +254,8 @@ run_deseq <- function(
     # make a heatmap of the significant genes
     tryCatch({
       sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
-      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
+      is.na(sign_genes) <- FALSE # some error handing for outliers as NA
+      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst", show_row_names = FALSE, show_column_names = FALSE)
       pdf(file.path(outpath, "dge_heatmap.pdf"))
       print(heatmapP)
       dev.off()
@@ -341,7 +342,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     cond_[cond_ != lvl] <- "rest"
     
     # create temporary dds objects for analysis
-    input_ <- ifelse(!is.null(controls), paste0(column), paste0(append(controls, column), collapse = " + "))
+    input_ <- ifelse(is.null(controls), paste0(column), paste0(append(controls, column), collapse = " + "))
     dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
     dds_ <- DESeq(dds_)
     res <- results(dds_, contrast = c("condition", lvl, "rest"))
@@ -529,7 +530,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       print(paste0("Levels: ", paste0(levels(colData(dds_)[, condition]), collapse = ", ")))
     }
 
-    input_ <- ifelse(!is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
+    input_ <- ifelse(is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
     levels <- levels(colData(dds_)[, condition])
@@ -542,7 +543,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
 
     # make a pca plot
     tryCatch({
-      pcs <- prcomp(t(normalize_counts(dds_, method = "vst")))
+      pcs <- prcomp(scale(t(normalize_counts(dds_, method = "vst"))))
       pca_plot <- ggbiplot(pcs, groups = colData(dds_)[, condition], ellipse = TRUE, var.axes = FALSE)
       ggsave(file.path(outpath, condition, "pca_plot.pdf"), pca_plot)
     }, error = function(e) {
