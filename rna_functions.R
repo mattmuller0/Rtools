@@ -341,7 +341,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     cond_[cond_ != lvl] <- "rest"
     
     # create temporary dds objects for analysis
-    input_ <- ifelse(!is.null(controls), paste0(column), paste0(append(controls, column), collapse = " + "))
+    input_ <- ifelse(is.null(controls), paste0(column), paste0(append(controls, column), collapse = " + "))
     dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
     dds_ <- DESeq(dds_)
     res <- results(dds_, contrast = c("condition", lvl, "rest"))
@@ -529,7 +529,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       print(paste0("Levels: ", paste0(levels(colData(dds_)[, condition]), collapse = ", ")))
     }
 
-    input_ <- ifelse(!is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
+    input_ <- ifelse(is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
     levels <- levels(colData(dds_)[, condition])
