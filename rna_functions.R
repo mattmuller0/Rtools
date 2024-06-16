@@ -508,9 +508,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
 
     input_ <- ifelse(is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
     design_matr <- as.formula(paste0("~ ", input_))
-    message(paste0("Design Matrix: ", design_matr))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
-    print("DDS MADE SUCCESSFULLY")
     levels <- levels(colData(dds_)[, condition])
 
     logg <- file(file.path(outpath, condition, paste0(condition, "_analysis_summary.log")), open = "wt")
