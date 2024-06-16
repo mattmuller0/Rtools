@@ -508,7 +508,6 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
 
     # make new dds object with no NAs
     if (!is.null(controls)) {
-
       dds_ <- remove_na_variables(dds, c(controls, condition))
       # make a stats table of the conditions and controls
       df_stats <- as.data.frame(colData(dds_))
