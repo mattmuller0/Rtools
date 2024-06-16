@@ -380,7 +380,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
 #   DESeqDataSet object with NAs removed
 remove_na_variables <- function(se, columns) {
   # Get the colData from the summarized experiment object
-  col_data <- colData(se)
+  col_data <- as.data.frame(colData(se))
   assay_data <- assay(se)
   
   # Update the DESeqDataSet object with the modified colData
