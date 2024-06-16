@@ -8,7 +8,6 @@
 # Script Name: rna_functions
 
 #======================== LIBRARIES ========================#
-suppressMessages(library(tidyverse))
 suppressMessages(library(AnnotationDbi))
 suppressMessages(library(forcats))
 suppressMessages(library(ggplot2))
@@ -18,6 +17,7 @@ suppressMessages(library(DESeq2))
 suppressMessages(library(edgeR))
 suppressMessages(library(limma))
 suppressMessages(library(ggbiplot))
+suppressMessages(library(tidyverse))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
@@ -380,16 +380,11 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
 #   DESeqDataSet object with NAs removed
 remove_na_variables <- function(se, columns) {
   # Get the colData from the summarized experiment object
-  col_data <- colData(se)
+  col_data <- as.data.frame(colData(se))
   assay_data <- assay(se)
   
-  # Find the variables with missing values
-  na_samples <- rownames(col_data)[rowSums(is.na(col_data[, columns])) > 0]
-
-  # Remove the variables with missing values from the colData
-  col_data <- col_data[!(rownames(col_data) %in% na_samples),]
-  
   # Update the DESeqDataSet object with the modified colData
+  col_data <- drop_na(col_data, any_of(columns))
   new_se <- make_se(assay_data, col_data)
 
   # Return the new DESeqDataSet object
