@@ -167,6 +167,7 @@ remove_na_variables <- function(se, columns) {
   
   # Update the DESeqDataSet object with the modified colData
   col_data <- drop_na(col_data, any_of(columns))
+  col_data <- DataFrame(col_data)
   new_se <- make_se(assay_data, col_data)
 
   # Return the new DESeqDataSet object
