@@ -19,7 +19,6 @@
 #                                 LIBRARIES
 #
 ###########################################################################
-suppressMessages(library(tidyverse))
 suppressMessages(library(ggplot2))
 suppressMessages(library(SummarizedExperiment))
 suppressMessages(library(DESeq2))
@@ -30,6 +29,7 @@ suppressMessages(library(ggtree))
 suppressMessages(library(ComplexHeatmap))
 suppressMessages(library(ggsci))
 suppressMessages(library(ggrepel))
+suppressMessages(library(tidyverse))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions

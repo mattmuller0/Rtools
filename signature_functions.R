@@ -8,11 +8,11 @@
 # Script Name: rna_functions
 
 #======================== LIBRARIES ========================
-suppressMessages(library(tidyverse))
 suppressMessages(library(ggplot2))
 suppressMessages(library(ggpubr))
 suppressMessages(library(ggrepel))
 suppressMessages(library(singscore))
+suppressMessages(library(tidyverse))
 
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
