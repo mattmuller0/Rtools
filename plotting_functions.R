@@ -635,7 +635,7 @@ plot_correlation_matrix <- function(cor_mat, title = '', xlab = '', ylab = '', x
     plot <- ggplot(long_cor_mat, aes(x = var1, y = var2)) +
     geom_point(aes(size = abs(cor), fill = factor(sign(cor))), pch=21, alpha = 0.75) +
     scale_size_continuous(range = c(1, 8)) +
-    scale_fill_manual(values = c('blue', 'red'), labels = c('Negative', 'Positive')) +
+    scale_fill_manual(values = c("1" = "red", "-1" = "blue"), labels = c("1" = "Positive", "-1" = "Negative"))
     # theme
     labs(
       title = title,
