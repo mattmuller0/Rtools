@@ -162,16 +162,12 @@ list_of_lists_to_df <- function(list) {
 #   DESeqDataSet object with NAs removed
 remove_na_variables <- function(se, columns) {
   # Get the colData from the summarized experiment object
-  col_data <- colData(se)
+  col_data <- as.data.frame(colData(se))
   assay_data <- assay(se)
   
-  # Find the variables with missing values
-  na_samples <- rownames(col_data)[rowSums(is.na(col_data[, columns])) > 0]
-
-  # Remove the variables with missing values from the colData
-  col_data <- col_data[!(rownames(col_data) %in% na_samples),]
-  
   # Update the DESeqDataSet object with the modified colData
+  col_data <- drop_na(col_data, any_of(columns))
+  col_data <- DataFrame(col_data)
   new_se <- make_se(assay_data, col_data)
 
   # Return the new DESeqDataSet object

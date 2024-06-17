@@ -372,25 +372,6 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   return(list_out)
 }
 
-# Function to remove NA variables from a summarized experiment object
-# Arguments:
-#   se: SummarizedExperiment object
-#   columns: list of columns to remove NAs from
-# Outputs:
-#   DESeqDataSet object with NAs removed
-remove_na_variables <- function(se, columns) {
-  # Get the colData from the summarized experiment object
-  col_data <- as.data.frame(colData(se))
-  assay_data <- assay(se)
-  
-  # Update the DESeqDataSet object with the modified colData
-  col_data <- drop_na(col_data, any_of(columns))
-  new_se <- make_se(assay_data, col_data)
-
-  # Return the new DESeqDataSet object
-  return(new_se)
-}
-
 # Function to summarize deseq results and return summary of results
 # Arguments:
 #   results: results of differential expression analysis
