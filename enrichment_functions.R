@@ -285,7 +285,7 @@ stratified_ora <- function(
   outpath,
   method = "enrichGO",
   padj_cutoff = 0.05,
-  max_pathways = 10,
+  max_pathways = 5,
   ...
   ) {
   require(clusterProfiler)
@@ -303,8 +303,8 @@ stratified_ora <- function(
   }
 
   enr_fn <- switch(method,
-    "enrichGO" = function(x) enrichGO(x, org.Hs.eg.db, ...),
-    "groupGO" = function(x) groupGO(x, org.Hs.eg.db, ...),
+    "enrichGO" = function(x) enrichGO(x, org.Hs.eg.db, pvalueCutoff = 1, ...),
+    "groupGO" = function(x) groupGO(x, org.Hs.eg.db, pvalueCutoff = 1, ...),
   )
   dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
 
