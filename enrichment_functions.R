@@ -27,13 +27,13 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_fun
 
 #======================== CODE ========================#
 
-# function to get the fc list
-# Arguments:
-#   res: data frame of results
-#   fc_col: column of fc values
-#   names: column of names (if null default to rownames)
-# Outputs:
-#   vector of sorted fc values
+#' function to get the fc list
+#' Arguments:
+#'   res: data frame of results
+#'   fc_col: column of fc values
+#'   names: column of names (if null default to rownames)
+#' Outputs:
+#'   vector of sorted fc values
 get_fc_list <- function(res, fc_col = "log2FoldChange", names = NULL) {
     if (is.null(names)) {
         res[, "rownames"] <- rownames(res)
@@ -56,16 +56,16 @@ get_fc_list <- function(res, fc_col = "log2FoldChange", names = NULL) {
     return(fc)
 }
 
-#  Run simple enrichment with enrichGO or gseGO
-#  Arguments:
-#    geneList: list of genes to run enrichment on
-#    outpath: path to push results to
-#    keyType: key type for gene list
-#    enricher: enrichment method to use (default is gseGO)
-#    image_type: type of image to save (default is pdf)
-#    ...: additional arguments to pass to enricher
-#  Outputs:
-#    Enrichment results for each level of column of interest
+#'  Run simple enrichment with enrichGO or gseGO
+#'  Arguments:
+#'    geneList: list of genes to run enrichment on
+#'    outpath: path to push results to
+#'    keyType: key type for gene list
+#'    enricher: enrichment method to use (default is gseGO)
+#'    image_type: type of image to save (default is pdf)
+#'    ...: additional arguments to pass to enricher
+#'  Outputs:
+#'    Enrichment results for each level of column of interest
 rna_enrichment <- function(
   geneList, outpath, 
   keyType = NULL, enricher_function = NULL, 
@@ -99,13 +99,13 @@ rna_enrichment <- function(
   return(gse)
 }
 
-# Function to save and plot gse object
-# Arguments:
-#   gse: gse object
-#   outpath: path to save to
-#   ...: additional arguments to pass to ggsave
-# Outputs:
-#   saves the gse object to the outpath
+#' Function to save and plot gse object
+#' Arguments:
+#'   gse: gse object
+#'   outpath: path to save to
+#'   ...: additional arguments to pass to ggsave
+#' Outputs:
+#'   saves the gse object to the outpath
 save_gse <- function(gse, outpath, ...) {
   dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
   require(enrichplot)
@@ -212,16 +212,16 @@ save_gse <- function(gse, outpath, ...) {
 
 }
 
-#  Run a gsea analysis
-#  Arguments:
-#    geneList: list of genes to run enrichment on
-#    outpath: path to push results to
-#    keyType: key type for gene list
-#    enricher: enrichment method to use (default is gseGO)
-#    image_type: type of image to save (default is pdf)
-#    ...: additional arguments to pass to enricher
-#  Outputs:
-#    Enrichment results for each level of column of interest
+#'  Run a gsea analysis
+#'  Arguments:
+#'    geneList: list of genes to run enrichment on
+#'    outpath: path to push results to
+#'    keyType: key type for gene list
+#'    enricher: enrichment method to use (default is gseGO)
+#'    image_type: type of image to save (default is pdf)
+#'    ...: additional arguments to pass to enricher
+#'  Outputs:
+#'    Enrichment results for each level of column of interest
 gsea_analysis <- function(
   geneList, outpath, 
   keyType = NULL,
@@ -273,3 +273,48 @@ gsea_analysis <- function(
   }
   return(gse_list)
 }
+
+#' Function to do up and down overrepresentation analysis
+#' Arguments
+#'  - gene_dataframe [feature, direction] (output of getGenes)
+#'  - method
+#'  - padj_cutoff
+#'  - max_pathways
+stratified_ora <- function(
+  gene_dataframe,
+  outpath,
+  method = "enrichGO",
+  padj_cutoff = 0.05,
+  max_pathways = 10,
+  ...
+  ) {
+  require(clusterProfiler)
+  require(enrichR)
+  require(org.Hs.eg.db)
+
+  # get the up and down genes
+  up_genes <- gene_dataframe %>% filter(direction == up) %>% pull(feature)
+  down_genes <- gene_dataframe %>% filter(direction == down) %>% pull(feature)
+
+  # make sure the method is supported
+  methods <- c("enrichGO", "groupGO", "enrichR")
+  if (!(method %in% methods)) {
+    stop("Method not supported. Please use one of: ", paste(methods, collapse = ", "))
+  }
+
+  enr_fn <- switch(method,
+    "enrichGO" = function(x) enrichGO(x, ...),
+    "groupGO" = function(x) groupGO(x, ...),
+    "enrichR" = function(x) enrichR(x, ...)
+  )
+
+  out <- purrr::map_df(
+    list(up_genes, down_genes), ~{
+      enr <- enr_fn(.x)
+      enr@result %>% 
+        filter(padj < padj_cutoff) %>%
+        arrange(padj) %>%
+        slice(1:max_pathways)
+    }
+  )
+  }
