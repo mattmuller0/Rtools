@@ -305,16 +305,20 @@ stratified_ora <- function(
   enr_fn <- switch(method,
     "enrichGO" = function(x) enrichGO(x, ...),
     "groupGO" = function(x) groupGO(x, ...),
-    "enrichR" = function(x) enrichR(x, ...)
   )
 
-  out <- purrr::map_df(
+  out <- purrr::map_dfr(
     list(up_genes, down_genes), ~{
       enr <- enr_fn(.x)
-      enr@result %>% 
+      saveRDS(enr, file.path(outpath, paste0(.x, "_enrichment_results.rds")))
+      enr %>% 
         filter(padj < padj_cutoff) %>%
         arrange(padj) %>%
-        slice(1:max_pathways)
+        slice(1:max_pathways) %>%
+        mutate(direction = .x)
     }
   )
+  p <- ggplot(out, aes(x = -log10(padj), y = fct_reorder(Description, -log10(padj)), color = direction)) +
+    geom_bar() +
+    labs(title = "ORA Results", x = "-log10(padj)", y = NULL)
   }
