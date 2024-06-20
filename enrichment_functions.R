@@ -303,8 +303,8 @@ stratified_ora <- function(
   }
 
   enr_fn <- switch(method,
-    "enrichGO" = function(x) enrichGO(x, org.Hs.eg.db, pvalueCutoff = 1, ...),
-    "groupGO" = function(x) groupGO(x, org.Hs.eg.db, pvalueCutoff = 1, ...),
+    "enrichGO" = function(x) enrichGO(x, org.Hs.eg.db, pvalueCutoff = Inf, ...),
+    "groupGO" = function(x) groupGO(x, org.Hs.eg.db, pvalueCutoff = Inf, ...),
   )
   dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
 
