@@ -293,8 +293,8 @@ stratified_ora <- function(
   require(org.Hs.eg.db)
 
   # get the up and down genes
-  up_genes <- gene_dataframe %>% filter(direction == up) %>% pull(feature)
-  down_genes <- gene_dataframe %>% filter(direction == down) %>% pull(feature)
+  up_genes <- gene_dataframe %>% filter(direction == "up") %>% pull(features)
+  down_genes <- gene_dataframe %>% filter(direction == "down") %>% pull(features)
 
   # make sure the method is supported
   methods <- c("enrichGO", "groupGO", "enrichR")
@@ -303,22 +303,39 @@ stratified_ora <- function(
   }
 
   enr_fn <- switch(method,
-    "enrichGO" = function(x) enrichGO(x, ...),
-    "groupGO" = function(x) groupGO(x, ...),
+    "enrichGO" = function(x) enrichGO(x, org.Hs.eg.db, ...),
+    "groupGO" = function(x) groupGO(x, org.Hs.eg.db, ...),
   )
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
 
   out <- purrr::map_dfr(
-    list(up_genes, down_genes), ~{
-      enr <- enr_fn(.x)
-      saveRDS(enr, file.path(outpath, paste0(.x, "_enrichment_results.rds")))
-      enr %>% 
-        filter(padj < padj_cutoff) %>%
-        arrange(padj) %>%
+    c("up", "down"), ~{
+      if (.x == "up") {
+        enr <- enr_fn(up_genes)
+      } else {
+        enr <- enr_fn(down_genes)
+      }
+
+      if (nrow(enr@result) == 0) {
+        message("No results found for ", .x)
+        return(NULL)
+      }
+      save_gse(enr, file.path(outpath, .x))
+
+      enr@result %>% 
+        filter(p.adjust < padj_cutoff) %>%
+        arrange(p.adjust) %>%
         slice(1:max_pathways) %>%
         mutate(direction = .x)
     }
   )
-  p <- ggplot(out, aes(x = -log10(padj), y = fct_reorder(Description, -log10(padj)), color = direction)) +
-    geom_bar() +
-    labs(title = "ORA Results", x = "-log10(padj)", y = NULL)
+  write.csv(out, file.path(outpath, "ora_results.csv"), quote = TRUE, row.names = FALSE)
+  out$signed <- ifelse(out$direction == "up", -log10(out$p.adjust), log10(out$p.adjust))
+  p <- ggplot(out, aes(x = signed, y = fct_reorder(stringr::str_wrap(Description, 40), signed), fill = direction)) +
+    geom_col() +
+    labs(title = "ORA Results", x = "Signed -log10(padj)", y = NULL) +
+    theme_classic2()
+  ggplot2::ggsave(file.path(outpath, "ora_results.pdf"), p)
+
+  return(out)
   }
