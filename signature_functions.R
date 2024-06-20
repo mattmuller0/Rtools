@@ -32,7 +32,7 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_function
 #'  - log2fc_col: log2 fold change column name
 #' Returns:
 #' - dataframe of genes separated by up and down
-getGenes <- function(results, pval = 0.05, metric = 0, name_col = "rownames", pval_col = "pval", metric_col = "log2FoldChange") {
+getGenes <- function(results, pval = 0.05, metric = 0, name_col = "rownames", pval_col = "padj", metric_col = "log2FoldChange") {
     if (name_col = "rownames") {results <- rownames_to_column(results, var = name_col)}
     up <- results %>%
         dplyr::filter(!!sym(pval_col) < pval & !!sym(metric_col) > metric) %>%
