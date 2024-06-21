@@ -227,9 +227,9 @@ olink_analysis <- function(
     ) {
     dir.create(outdir, showWarnings = F)
     
-    # make sure the condition is in the data
-    if (!conditions %in% colnames(data)) {
-        stop(glue('Condition {condition} not in data'))
+    # make sure the conditions are in the data
+    if (!all(conditions %in% colnames(data))) {
+        stop('Conditions not in data')
     }
 
     de_res <- list()
