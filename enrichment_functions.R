@@ -297,7 +297,7 @@ stratified_ora <- function(
   down_genes <- gene_dataframe %>% filter(direction == "down") %>% pull(features)
 
   # make sure the method is supported
-  methods <- c("enrichGO", "groupGO", "enrichR")
+  methods <- c("enrichGO", "groupGO")
   if (!(method %in% methods)) {
     stop("Method not supported. Please use one of: ", paste(methods, collapse = ", "))
   }
@@ -316,7 +316,7 @@ stratified_ora <- function(
         enr <- enr_fn(down_genes)
       }
 
-      if (nrow(enr@result) == 0) {
+      if (is.null(enr)) {
         message("No results found for ", .x)
         return(NULL)
       }
@@ -338,4 +338,59 @@ stratified_ora <- function(
   ggplot2::ggsave(file.path(outpath, "ora_results.pdf"), p)
 
   return(out)
+  }
+
+
+#' Function to do up and down overrepresentation analysis
+#' Arguments
+#'  - gene_dataframe [feature, direction] (output of getGenes)
+#'  - method
+#'  - padj_cutoff
+#'  - max_pathways
+stratified_enrichr <- function(
+  gene_dataframe,
+  outpath,
+  dbs = c("GO_Biological_Process_2023", "GO_Cellular_Component_2023", "GO_Molecular_Function_2023", "WikiPathway_2023_Human", "GWAS_Catalog_2023", "Reactome_2022", "MSigDB Hallmark 2020"),
+  padj_cutoff = 0.05,
+  max_pathways = 5,
+  ...
+  ) {
+  require(clusterProfiler)
+  require(enrichR)
+  require(org.Hs.eg.db)
+
+  # get the up and down genes
+  up_genes <- gene_dataframe %>% filter(direction == "up") %>% pull(features)
+  down_genes <- gene_dataframe %>% filter(direction == "down") %>% pull(features)
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
+
+  out_dbs <- purrr::map(dbs, ~{
+    dir.create(file.path(outpath, .x), showWarnings = FALSE, recursive = TRUE)
+    enr_up <- enrichr(up_genes, .x)[[.x]] %>% mutate(direction = "up")
+    enr_down <- enrichr(down_genes, .x)[[.x]] %>% mutate(direction = "down")
+    enr <- bind_rows(enr_up, enr_down)
+    if (nrow(enr) == 0) {
+      message("No results found for ", .x)
+      return(NULL)
+    }
+    write.csv(enr, file.path(outpath, .x, "enrichr_results.csv"), quote = TRUE, row.names = FALSE)
+
+    sign_enr <- enr %>% 
+      group_by(direction) %>%
+      filter(Adjusted.P.value < padj_cutoff) %>%
+      arrange(Adjusted.P.value) %>%
+      slice(1:max_pathways) %>%
+      mutate(signed = ifelse(direction == "up", -log10(Adjusted.P.value), log10(Adjusted.P.value)))
+    write.csv(sign_enr, file.path(outpath, .x, "enrichr_results_sig.csv"), quote = TRUE, row.names = FALSE)
+
+    p <- ggplot(sign_enr, aes(x = signed, y = fct_reorder(stringr::str_wrap(Term, 40), signed), fill = direction)) +
+      geom_col() +
+      labs(title = "ORA Results", x = "Signed -log10(padj)", y = NULL) +
+      theme_classic2()
+    ggplot2::ggsave(file.path(outpath, .x, "enrichr_results.pdf"), p)
+    sign_enr
+  })
+  names(out_dbs) <- dbs
+
+  return(out_dbs)
   }
