@@ -20,9 +20,7 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functi
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R")
 
-#======================== CODE ========================
-
-
+#======================== Testing Functions ========================
 #' Function to compare one column to many columns
 #' Arguments:
 #'   - df: data frame
