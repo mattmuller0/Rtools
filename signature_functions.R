@@ -21,21 +21,20 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_funct
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R")
 
 message("
-
                                           .db--D,
-                                          db( o\o
-                              _____       /  ,_  \
-                       ,,---~~     ~~~~--;   / ~-,$
+                                          db( o\ o
+                              _____       /  ,_   \
+                       ,,---~~     ~~~~--;   /  ~-,$
                       /    __               /
                      /    /  \             /
-                    (    ;    \,           )
+                    (    ;    \            )
                      |  |       '--__;--   /
                      ) )                \ |
                     / /                 |:|
                    / /                  |;|
                    (||                  |:|
                    |,\                  |:!
- _________________.\LLe._______________.\\Le.__Pr59_____
+ _________________.\\Le._______________.\\Le.__Pr59_____
 ")
 
 #======================== Testing Functions ========================
