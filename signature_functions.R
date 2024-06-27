@@ -20,6 +20,24 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functi
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R")
 
+message("
+
+                                          .db--D,
+                                          db( o\o
+                              _____       /  ,_  \
+                       ,,---~~     ~~~~--;   / ~-,$
+                      /    __               /
+                     /    /  \             /
+                    (    ;    \,           )
+                     |  |       '--__;--   /
+                     ) )                \ |
+                    / /                 |:|
+                   / /                  |;|
+                   (||                  |:|
+                   |,\                  |:!
+ _________________.\LLe._______________.\\Le.__Pr59_____
+")
+
 #======================== Testing Functions ========================
 #' Function to compare one column to many columns
 #' Arguments:

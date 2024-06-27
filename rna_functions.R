@@ -26,6 +26,7 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_funct
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/enrichment_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/filtering_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R")
 
 #======================== Reading Functions ========================
 #' Function to make a count table from feature counts output directory
