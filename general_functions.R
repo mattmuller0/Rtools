@@ -14,13 +14,35 @@ suppressMessages(library(tidyverse))
 
 # CODE BLOCK ----------------------------------------------
 
-# Function to add missing rows to a matrix
-# Arguments:
-#   - df: matrix, rows = genes, cols = samples
-#   - rows: vector of rownames to add
-#   - sorted: logical, whether to sort the rows alphabetically
-# Returns:
-#   - df: matrix, rows = genes, cols = samples
+#' Function to get genes from a results table
+#' Arguments:
+#'  - results: results table
+#'  - pval: p-value cutoff
+#'  - log2fc: log2 fold change cutoff
+#'  - gene_col: gene column name
+#'  - pval_col: p-value column name
+#'  - log2fc_col: log2 fold change column name
+#' Returns:
+#' - dataframe of genes separated by up and down
+getGenes <- function(results, pval = 0.05, metric = 0, name_col = "rownames", pval_col = "padj", metric_col = "log2FoldChange") {
+    if (name_col == "rownames") {results <- rownames_to_column(results, var = name_col)}
+    up <- results %>%
+        dplyr::filter(!!sym(pval_col) < pval & !!sym(metric_col) > metric) %>%
+        dplyr::pull(!!sym(name_col))
+    down <- results %>%
+        dplyr::filter(!!sym(pval_col) < pval & !!sym(metric_col) < metric) %>%
+        dplyr::pull(!!sym(name_col))
+    out <- data.frame(features = c(up, down), direction = c(rep("up", length(up)), rep("down", length(down))))
+    return(out)
+}
+
+#' Function to add missing rows to a matrix
+#' Arguments:
+#'   - df: matrix, rows = genes, cols = samples
+#'   - rows: vector of rownames to add
+#'   - sorted: logical, whether to sort the rows alphabetically
+#' Returns:
+#'   - df: matrix, rows = genes, cols = samples
 add_missing_rows <- function(
     df, # cols = samples, rows = genes
     rows, # cols = samples, rows = genes
@@ -46,12 +68,12 @@ add_missing_rows <- function(
   return(df)
 }
 
-# Function to make a SummarizedExperiment object
-# Arguments:
-#   - countsMatr: matrix of counts, rows = genes, cols = samples
-#   - colData: data.frame of sample metadata, rows = samples
-# Returns:
-#   - se: SummarizedExperiment object
+#' Function to make a SummarizedExperiment object
+#' Arguments:
+#'   - countsMatr: matrix of counts, rows = genes, cols = samples
+#'   - colData: data.frame of sample metadata, rows = samples
+#' Returns:
+#'   - se: SummarizedExperiment object
 make_se <- function(countsMatr, colData) {
   require(SummarizedExperiment)
   require(BiocGenerics)
@@ -61,11 +83,11 @@ make_se <- function(countsMatr, colData) {
   return(se)
 }
 
-# Function to save a SummarizedExperiment object into multiple files if the slots are filled in the object
-# Arguments:
-#   - se: SummarizedExperiment object
-#   - path: path to save files
-#   - normalize: how to normalize the counts
+#' Function to save a SummarizedExperiment object into multiple files if the slots are filled in the object
+#' Arguments:
+#'   - se: SummarizedExperiment object
+#'   - path: path to save files
+#'   - normalize: how to normalize the counts
 save_se <- function(se, path, normalize = 'mor') {
   # make sure the path exists
   dir.create(path, showWarnings = F, recursive = T)
@@ -88,11 +110,11 @@ save_se <- function(se, path, normalize = 'mor') {
 
 }
 
-# Function to summarize a dataframe
-# Arguments:
-#   - df: dataframe to summarize
-# Returns:
-#   - df: dataframe with summary statistics
+#' Function to summarize a dataframe
+#' Arguments:
+#'   - df: dataframe to summarize
+#' Returns:
+#'   - df: dataframe with summary statistics
 summarize_df <- function(df) {
   df %>%
     summary() %>%
@@ -104,12 +126,12 @@ summarize_df <- function(df) {
   return(df)
 }
 
-# Function to normalize dds object and return counts
-# Arguments:
-#   - dds: DESeq2 object
-#   - method: normalization method
-# Returns:
-#   - counts: normalized counts
+#' Function to normalize dds object and return counts
+#' Arguments:
+#'   - dds: DESeq2 object
+#'   - method: normalization method
+#' Returns:
+#'   - counts: normalized counts
 normalize_counts <- function(dds, method = 'mor', log2 = FALSE) {
   suppressPackageStartupMessages(require(DESeq2))
   suppressPackageStartupMessages(require(SummarizedExperiment))
@@ -144,11 +166,11 @@ normalize_counts <- function(dds, method = 'mor', log2 = FALSE) {
   return(counts)
 }
 
-# Function to turn list of lists into a dataframe
-# Arguments:
-#   - list: list of lists
-# Returns:
-#   - df: dataframe
+#' Function to turn list of lists into a dataframe
+#' Arguments:
+#'   - list: list of lists
+#' Returns:
+#'   - df: dataframe
 list_of_lists_to_df <- function(list) {
   df <- do.call(rbind, lapply(list, function(x) data.frame(x)))
   return(df)
@@ -174,12 +196,12 @@ remove_na_variables <- function(se, columns) {
   return(new_se)
 }
 
-# Function to get the number of samples in each group
-# Arguments:
-#  - metadata: dataframe, metadata
-#  - id: character, column name of the sample ID
-#  - events_term: character, prefix of the events columns
-#  - subset: character, column name of the grouping variable
+#' Function to get the number of samples in each group
+#' Arguments:
+#'  - metadata: dataframe, metadata
+#'  - id: character, column name of the sample ID
+#'  - events_term: character, prefix of the events columns
+#'  - subset: character, column name of the grouping variable
 get_events_breakdown <- function(metadata, id = 'PATNUM', events_term = 'C_', subset = NULL) {
     # get the match of the PATNUMs
     metadata_patnums <- metadata[,id]
@@ -203,11 +225,11 @@ get_events_breakdown <- function(metadata, id = 'PATNUM', events_term = 'C_', su
     return(subtype_breakdown)
 }
 
-# Function to get make pairwise combinations
-# Arguments:
-#   - vec: vector of values
-# Returns:
-#   - list of pairwise combinations
+#' Function to get make pairwise combinations
+#' Arguments:
+#'   - vec: vector of values
+#' Returns:
+#'   - list of pairwise combinations
 pairwise_combos <- function(vec) {
     unique_vals <- unique(vec)
     combos <- combn(unique_vals, 2)
@@ -218,22 +240,22 @@ pairwise_combos <- function(vec) {
     return(list_of_combos)
 }
 
-# Function to get the variable name
-# Arguments:
-#  - var: variable name
-# Returns:
-#  - varName: character, variable name
+#' Function to get the variable name
+#' Arguments:
+#'  - var: variable name
+#' Returns:
+#'  - varName: character, variable name
 varName <- function(var) {
   deparse(substitute(var))
 }
 
-# Function to one hot encode dataframe column
-# Arguments:
-#   - df: dataframe
-#   - column: character, column name
-#   - binary: logical, whether to make the column binary
-# Returns:
-#   - df: dataframe with one hot encoded column
+#' Function to one hot encode dataframe column
+#' Arguments:
+#'   - df: dataframe
+#'   - column: character, column name
+#'   - binary: logical, whether to make the column binary
+#' Returns:
+#'   - df: dataframe with one hot encoded column
 one_hot_encode_ovr <- function(df, column, binary = TRUE) {
   # Get the unique values of the column
   unique_vals <- unique(df[[column]])
@@ -257,12 +279,12 @@ one_hot_encode_ovr <- function(df, column, binary = TRUE) {
 }
 
 
-# Function to install all required packages from a script
-# Arguments:
-#   - script: character, path to script
-#   - 
-# Returns:
-#   - none
+#' Function to install all required packages from a script
+#' Arguments:
+#'   - script: character, path to script
+#'   - 
+#' Returns:
+#'   - none
 install_packages_from_script <- function(script) {
   # Read in the script
   script <- readLines(script)

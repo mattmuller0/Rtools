@@ -27,13 +27,13 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_fun
 
 #======================== CODE ========================#
 
-# function to get the fc list
-# Arguments:
-#   res: data frame of results
-#   fc_col: column of fc values
-#   names: column of names (if null default to rownames)
-# Outputs:
-#   vector of sorted fc values
+#' function to get the fc list
+#' Arguments:
+#'   res: data frame of results
+#'   fc_col: column of fc values
+#'   names: column of names (if null default to rownames)
+#' Outputs:
+#'   vector of sorted fc values
 get_fc_list <- function(res, fc_col = "log2FoldChange", names = NULL) {
     if (is.null(names)) {
         res[, "rownames"] <- rownames(res)
@@ -56,16 +56,16 @@ get_fc_list <- function(res, fc_col = "log2FoldChange", names = NULL) {
     return(fc)
 }
 
-#  Run simple enrichment with enrichGO or gseGO
-#  Arguments:
-#    geneList: list of genes to run enrichment on
-#    outpath: path to push results to
-#    keyType: key type for gene list
-#    enricher: enrichment method to use (default is gseGO)
-#    image_type: type of image to save (default is pdf)
-#    ...: additional arguments to pass to enricher
-#  Outputs:
-#    Enrichment results for each level of column of interest
+#'  Run simple enrichment with enrichGO or gseGO
+#'  Arguments:
+#'    geneList: list of genes to run enrichment on
+#'    outpath: path to push results to
+#'    keyType: key type for gene list
+#'    enricher: enrichment method to use (default is gseGO)
+#'    image_type: type of image to save (default is pdf)
+#'    ...: additional arguments to pass to enricher
+#'  Outputs:
+#'    Enrichment results for each level of column of interest
 rna_enrichment <- function(
   geneList, outpath, 
   keyType = NULL, enricher_function = NULL, 
@@ -99,13 +99,13 @@ rna_enrichment <- function(
   return(gse)
 }
 
-# Function to save and plot gse object
-# Arguments:
-#   gse: gse object
-#   outpath: path to save to
-#   ...: additional arguments to pass to ggsave
-# Outputs:
-#   saves the gse object to the outpath
+#' Function to save and plot gse object
+#' Arguments:
+#'   gse: gse object
+#'   outpath: path to save to
+#'   ...: additional arguments to pass to ggsave
+#' Outputs:
+#'   saves the gse object to the outpath
 save_gse <- function(gse, outpath, ...) {
   dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
   require(enrichplot)
@@ -212,16 +212,16 @@ save_gse <- function(gse, outpath, ...) {
 
 }
 
-#  Run a gsea analysis
-#  Arguments:
-#    geneList: list of genes to run enrichment on
-#    outpath: path to push results to
-#    keyType: key type for gene list
-#    enricher: enrichment method to use (default is gseGO)
-#    image_type: type of image to save (default is pdf)
-#    ...: additional arguments to pass to enricher
-#  Outputs:
-#    Enrichment results for each level of column of interest
+#'  Run a gsea analysis
+#'  Arguments:
+#'    geneList: list of genes to run enrichment on
+#'    outpath: path to push results to
+#'    keyType: key type for gene list
+#'    enricher: enrichment method to use (default is gseGO)
+#'    image_type: type of image to save (default is pdf)
+#'    ...: additional arguments to pass to enricher
+#'  Outputs:
+#'    Enrichment results for each level of column of interest
 gsea_analysis <- function(
   geneList, outpath, 
   keyType = NULL,
@@ -273,3 +273,124 @@ gsea_analysis <- function(
   }
   return(gse_list)
 }
+
+#' Function to do up and down overrepresentation analysis
+#' Arguments
+#'  - gene_dataframe [feature, direction] (output of getGenes)
+#'  - method
+#'  - padj_cutoff
+#'  - max_pathways
+stratified_ora <- function(
+  gene_dataframe,
+  outpath,
+  method = "enrichGO",
+  padj_cutoff = 0.05,
+  max_pathways = 5,
+  ...
+  ) {
+  require(clusterProfiler)
+  require(enrichR)
+  require(org.Hs.eg.db)
+
+  # get the up and down genes
+  up_genes <- gene_dataframe %>% filter(direction == "up") %>% pull(features)
+  down_genes <- gene_dataframe %>% filter(direction == "down") %>% pull(features)
+
+  # make sure the method is supported
+  methods <- c("enrichGO", "groupGO")
+  if (!(method %in% methods)) {
+    stop("Method not supported. Please use one of: ", paste(methods, collapse = ", "))
+  }
+
+  enr_fn <- switch(method,
+    "enrichGO" = function(x) enrichGO(x, org.Hs.eg.db, pvalueCutoff = Inf, ...),
+    "groupGO" = function(x) groupGO(x, org.Hs.eg.db, pvalueCutoff = Inf, ...),
+  )
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
+
+  out <- purrr::map_dfr(
+    c("up", "down"), ~{
+      if (.x == "up") {
+        enr <- enr_fn(up_genes)
+      } else {
+        enr <- enr_fn(down_genes)
+      }
+
+      if (is.null(enr)) {
+        message("No results found for ", .x)
+        return(NULL)
+      }
+      save_gse(enr, file.path(outpath, .x))
+
+      enr@result %>% 
+        filter(p.adjust < padj_cutoff) %>%
+        arrange(p.adjust) %>%
+        slice(1:max_pathways) %>%
+        mutate(direction = .x)
+    }
+  )
+  write.csv(out, file.path(outpath, "ora_results.csv"), quote = TRUE, row.names = FALSE)
+  out$signed <- ifelse(out$direction == "up", -log10(out$p.adjust), log10(out$p.adjust))
+  p <- ggplot(out, aes(x = signed, y = fct_reorder(stringr::str_wrap(Description, 40), signed), fill = direction)) +
+    geom_col() +
+    labs(title = "ORA Results", x = "Signed -log10(padj)", y = NULL) +
+    theme_classic2()
+  ggplot2::ggsave(file.path(outpath, "ora_results.pdf"), p)
+
+  return(out)
+  }
+
+
+#' Function to do up and down overrepresentation analysis
+#' Arguments
+#'  - gene_dataframe [feature, direction] (output of getGenes)
+#'  - method
+#'  - padj_cutoff
+#'  - max_pathways
+stratified_enrichr <- function(
+  gene_dataframe,
+  outpath,
+  dbs = c("GO_Biological_Process_2023", "GO_Cellular_Component_2023", "GO_Molecular_Function_2023", "WikiPathway_2023_Human", "GWAS_Catalog_2023", "Reactome_2022", "MSigDB Hallmark 2020"),
+  padj_cutoff = 0.05,
+  max_pathways = 5,
+  ...
+  ) {
+  require(clusterProfiler)
+  require(enrichR)
+  require(org.Hs.eg.db)
+
+  # get the up and down genes
+  up_genes <- gene_dataframe %>% filter(direction == "up") %>% pull(features)
+  down_genes <- gene_dataframe %>% filter(direction == "down") %>% pull(features)
+  dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
+
+  out_dbs <- purrr::map(dbs, ~{
+    dir.create(file.path(outpath, .x), showWarnings = FALSE, recursive = TRUE)
+    enr_up <- enrichr(up_genes, .x)[[.x]] %>% mutate(direction = "up")
+    enr_down <- enrichr(down_genes, .x)[[.x]] %>% mutate(direction = "down")
+    enr <- bind_rows(enr_up, enr_down)
+    if (nrow(enr) == 0) {
+      message("No results found for ", .x)
+      return(NULL)
+    }
+    write.csv(enr, file.path(outpath, .x, "enrichr_results.csv"), quote = TRUE, row.names = FALSE)
+
+    sign_enr <- enr %>% 
+      group_by(direction) %>%
+      filter(Adjusted.P.value < padj_cutoff) %>%
+      arrange(Adjusted.P.value) %>%
+      slice(1:max_pathways) %>%
+      mutate(signed = ifelse(direction == "up", -log10(Adjusted.P.value), log10(Adjusted.P.value)))
+    write.csv(sign_enr, file.path(outpath, .x, "enrichr_results_sig.csv"), quote = TRUE, row.names = FALSE)
+
+    p <- ggplot(sign_enr, aes(x = signed, y = fct_reorder(stringr::str_wrap(Term, 40), signed), fill = direction)) +
+      geom_col() +
+      labs(title = "ORA Results", x = "Signed -log10(padj)", y = NULL) +
+      theme_classic2()
+    ggplot2::ggsave(file.path(outpath, .x, "enrichr_results.pdf"), p)
+    sign_enr
+  })
+  names(out_dbs) <- dbs
+
+  return(out_dbs)
+  }

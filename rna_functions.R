@@ -26,18 +26,49 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_funct
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/enrichment_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/converting_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/filtering_functions.R")
+source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R")
 
-#======================== CODE ========================#
-# Wilcoxan Ranked Sum testing on genes in two summarized experiments
-# Arguments:
-#   dds: DESeq2 object
-#   condition: column of interest
-#   controls: control groups
-#   pCutoff: pvalue cutoff for volcano plot
-#   FCcutoff: fold change cutoff for volcano plot
-#   ...: additional arguments to pass to wilcox.test
-# Outputs:
-#   data frame of p-values and adjusted p-values
+#======================== Reading Functions ========================
+#' Function to make a count table from feature counts output directory
+#' Arguments:
+#'   directory: directory containing feature counts output
+#'   pattern: pattern to match for feature counts output
+#'   idx: columns to extract for (1) gene name and (2) counts
+#'   ...: additional arguments to pass to read.table
+#' Outputs:
+#'   data frame of counts
+ReadFeatureCounts <- function(f, idx = idx, ...) {
+    if (missing(f)) 
+        stop("f is missing")
+    if (!file.exists(f)) 
+        stop("file not found")
+    message("reading ", f, " ...")
+    a <- read.table(f, header = TRUE, ...)
+    a <- a %>% dplyr::select(1, idx)
+    return(a)
+}
+CountTableFromFeatureCounts <- function (directory = ".", pattern = "featureCounts.txt$", idx = 7, ... ) {
+    if (missing(directory)) 
+        stop("directory is missing")
+    fl <- list.files(directory, pattern = pattern, full.names = TRUE, recursive = TRUE)
+    message("reading ", length(fl), " samples ...")
+    sample_names <- basename(fl)
+    l <- purrr::map(fl, ReadFeatureCounts, idx = idx, ...)
+    tbl <- purrr::reduce(l, inner_join) 
+    return(tbl)
+}
+
+#======================== Testing Functions ========================
+#' Wilcoxan Ranked Sum testing on genes in two summarized experiments
+#' Arguments:
+#'   dds: DESeq2 object
+#'   condition: column of interest
+#'   controls: control groups
+#'   pCutoff: pvalue cutoff for volcano plot
+#'   FCcutoff: fold change cutoff for volcano plot
+#'   ...: additional arguments to pass to wilcox.test
+#' Outputs:
+#'   data frame of p-values and adjusted p-values
 gene_wilcox_test <- function(
   dds, outpath,
   condition,
@@ -116,14 +147,14 @@ gene_wilcox_test <- function(
   return(res)
 }
 
-# Function to run limma voom on a summarized experiment object with TMM normalization
-# Arguments:
-#   dds: DESeq2 object
-#   condition: vector of conditions
-#   controls: vector of control groups
-#   ...: additional arguments to pass to voom
-# Outputs:
-#   data frame of p-values and adjusted p-values
+#' Function to run limma voom on a summarized experiment object with TMM normalization
+#' Arguments:
+#'   dds: DESeq2 object
+#'   condition: vector of conditions
+#'   controls: vector of control groups
+#'   ...: additional arguments to pass to voom
+#' Outputs:
+#'   data frame of p-values and adjusted p-values
 run_limma <- function(
     se, outpath,
     condition, controls = NULL,
@@ -180,13 +211,13 @@ run_limma <- function(
     return(results)
 }
 
-#  Calculate Correlations
-#  Arguments:
-#    dds: DESeq2 object
-#    condition: column of interest
-#    method: correlation method to use
-#  Outputs:
-#    Correlation results for each gene
+#'  Calculate Correlations
+#'  Arguments:
+#'    dds: DESeq2 object
+#'    condition: column of interest
+#'    method: correlation method to use
+#'  Outputs:
+#'    Correlation results for each gene
 calculate_correlations <- function(dds, condition, normalize = "mor", method="spearman", ...) {
   # Extract the condition vector
   condition <- colData(dds)[, condition] %>% as.numeric()
@@ -209,14 +240,14 @@ calculate_correlations <- function(dds, condition, normalize = "mor", method="sp
   return(gene_expression_correlations_df)
 }
 
-#  Run Simple Deseq analysis
-# Arguments:
-#   dds: DESeq2 object
-#   outpath: path to push results to
-#   contrast: contrast to run
-#   ...: additional arguments to pass to DESeq2
-# Outputs:
-#   results of differential expression analysis
+#'  Run Simple Deseq analysis
+#' Arguments:
+#'   dds: DESeq2 object
+#'   outpath: path to push results to
+#'   contrast: contrast to run
+#'   ...: additional arguments to pass to DESeq2
+#' Outputs:
+#'   results of differential expression analysis
 run_deseq <- function(
   # main inputs
   dds, outpath,
@@ -308,13 +339,13 @@ run_deseq <- function(
   return(res)
 }
 
-# OVR Deseq Results Function
-# Arguments:
-#   dds: DESeq2 object
-#   column: column of interest for OVR analysis
-#   outpath: path to push results to
-# Outputs:
-#   OVR results for each level of column of interest
+#' OVR Deseq Results Function
+#' Arguments:
+#'   dds: DESeq2 object
+#'   column: column of interest for OVR analysis
+#'   outpath: path to push results to
+#' Outputs:
+#'   OVR results for each level of column of interest
 ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   require(DESeq2)
   require(clusterProfiler)
@@ -372,108 +403,15 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   return(list_out)
 }
 
-# Function to summarize deseq results and return summary of results
-# Arguments:
-#   results: results of differential expression analysis
-#   padj_cutoffs: list of padj cutoffs to use
-#   pvalue_cutoffs: list of pvalue cutoffs to use
-# Outputs:
-#   summary of results
-summarize_deseq_experiment <- function(
-  results, 
-  padj_cutoffs = c(0.05, 0.1, 0.2), pvalue_cutoffs = c(0.01, 0.05, 0.1), 
-  logFC_cutoff = 0
-  ) {
-  # summary of the results at different padj cutoffs
-  padj_summary <- data.frame()
-  for (padj_cutoff in padj_cutoffs) {
-    padj_summary <- rbind(
-      padj_summary, data.frame(sign_cutoff = paste0("padj < ", padj_cutoff), 
-      n_genes = filter(as.data.frame(results), padj < padj_cutoff) %>% nrow(), 
-      n_up = filter(as.data.frame(results), padj < padj_cutoff & log2FoldChange > logFC_cutoff) %>% nrow(),
-      n_down = filter(as.data.frame(results), padj < padj_cutoff & log2FoldChange < logFC_cutoff) %>% nrow())
-      )
-  }
-
-  # summary of the results at different pvalue cutoffs
-  pvalue_summary <- data.frame()
-  for (pvalue_cutoff in pvalue_cutoffs) {
-    pvalue_summary <- rbind(
-      pvalue_summary, 
-      data.frame(sign_cutoff = paste0("pvalue < ", pvalue_cutoff), n_genes = filter(as.data.frame(results), pvalue < pvalue_cutoff) %>% nrow(),
-      n_up = filter(as.data.frame(results), pvalue < pvalue_cutoff & log2FoldChange > logFC_cutoff) %>% nrow(),
-      n_down = filter(as.data.frame(results), pvalue < pvalue_cutoff & log2FoldChange < -logFC_cutoff) %>% nrow())
-      )
-  }
-
-  # combine the summaries
-  summary <- rbind(padj_summary, pvalue_summary)
-  return(summary)
-}
-
-# Function to summarize results more generally
-# Arguments:
-#   results: results of differential expression analysis
-#   logFC_column: column to use for logFC
-#   pvalue_column: column to use for pvalue
-#   padj_column: column to use for padj
-#   padj_cutoffs: list of padj cutoffs to use
-#   pvalue_cutoffs: list of pvalue cutoffs to use
-#   logFC_cutoff: logFC cutoff to use
-# Outputs:
-#   summary of results
-summarize_experiment <- function(
-  results, 
-  logFC_column = "log2FoldChange",
-  pvalue_column = "pvalue",
-  padj_column = "padj",
-  pvalue_cutoffs = c(0.01, 0.05, 0.1), 
-  padj_cutoffs = c(0.05, 0.1, 0.2), 
-  logFC_cutoff = 0
-  ) {
-  # summary of the results at different padj cutoffs
-  summary <- data.frame(
-    variable = character(),
-    p_cutoff = numeric(),
-    fc_cutoff = numeric(),
-    n_sig = numeric(),
-    n_up = numeric(),
-    n_down = numeric()
-  )
-  lapply(pvalue_cutoffs, function(pvalue_cutoff) {
-    summary <<- summary %>% 
-      add_row(
-        variable = "pvalue",
-        cutoff = pvalue_cutoff,
-        fc_cutoff = logFC_cutoff,
-        n_sig = sum(results[[pvalue_column]] < pvalue_cutoff),
-        n_up = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] > logFC_cutoff),
-        n_down = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] < -logFC_cutoff)
-      )
-  })
-  lapply(padj_cutoffs, function(padj_cutoff) {
-    summary <<- summary %>% 
-      add_row(
-        variable = "padj",
-        cutoff = padj_cutoff,
-        fc_cutoff = logFC_cutoff,
-        n_sig = sum(results[[padj_column]] < padj_cutoff),
-        n_up = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] > logFC_cutoff),
-        n_down = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] < -logFC_cutoff)
-      )
-  })
-  return(summary)
-}
-
-# Function to run deseq on a variety of conditions
-# Arguments:
-#   dds: DESeq2 object
-#   conditions: list of conditions to run deseq on
-#   controls: list of controls to run deseq on
-#   outpath: path to push results to
-#   ...: additional arguments to pass to deseq for volcano plots
-# Outputs:
-#   results of differential expression analysis
+#' Function to run deseq on a variety of conditions
+#' Arguments:
+#'   dds: DESeq2 object
+#'   conditions: list of conditions to run deseq on
+#'   controls: list of controls to run deseq on
+#'   outpath: path to push results to
+#'   ...: additional arguments to pass to deseq for volcano plots
+#' Outputs:
+#'   results of differential expression analysis
 deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
   # make directory
   dir.create(outpath, showWarnings = FALSE, recursive = TRUE)
@@ -593,14 +531,14 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
   return(analysis_list)
 }
 
-# Function to run statistical tests on a DESeq2 object using rstatix functions
-# Arguments:
-#   formula: formula to use for the test
-#   dds: DESeq2 object
-#   rstatix_test: rstatix test to use
-#   ...: additional arguments to pass to rstatix_test
-# Outputs:
-#   data frame of p-values and adjusted p-values
+#' Function to run statistical tests on a DESeq2 object using rstatix functions
+#' Arguments:
+#'   formula: formula to use for the test
+#'   dds: DESeq2 object
+#'   rstatix_test: rstatix test to use
+#'   ...: additional arguments to pass to rstatix_test
+#' Outputs:
+#'   data frame of p-values and adjusted p-values
 test_dds <- function(formula, dds, rstatix_test = wilcox_test, ...) {
     require(DESeq2)
     message("Extracting data from DESeq object")
@@ -672,31 +610,122 @@ test_dds <- function(formula, dds, rstatix_test = wilcox_test, ...) {
     return(df_out)
 }
 
-# Function to make a count table from feature counts output directory
-# Arguments:
-#   directory: directory containing feature counts output
-#   pattern: pattern to match for feature counts output
-#   idx: columns to extract for (1) gene name and (2) counts
-#   ...: additional arguments to pass to read.table
-# Outputs:
-#   data frame of counts
-ReadFeatureCounts <- function(f, idx = idx, ...) {
-    if (missing(f)) 
-        stop("f is missing")
-    if (!file.exists(f)) 
-        stop("file not found")
-    message("reading ", f, " ...")
-    a <- read.table(f, header = TRUE, ...)
-    a <- a %>% dplyr::select(1, idx)
-    return(a)
+#======================== Summary Functions ========================
+
+#' Function to summarize deseq results and return summary of results
+#' Arguments:
+#'   results: results of differential expression analysis
+#'   padj_cutoffs: list of padj cutoffs to use
+#'   pvalue_cutoffs: list of pvalue cutoffs to use
+#' Outputs:
+#'   summary of results
+summarize_deseq_experiment <- function(
+  results, 
+  padj_cutoffs = c(0.05, 0.1, 0.2), pvalue_cutoffs = c(0.01, 0.05, 0.1), 
+  logFC_cutoff = 0
+  ) {
+  # summary of the results at different padj cutoffs
+  padj_summary <- data.frame()
+  for (padj_cutoff in padj_cutoffs) {
+    padj_summary <- rbind(
+      padj_summary, data.frame(sign_cutoff = paste0("padj < ", padj_cutoff), 
+      n_genes = filter(as.data.frame(results), padj < padj_cutoff) %>% nrow(), 
+      n_up = filter(as.data.frame(results), padj < padj_cutoff & log2FoldChange > logFC_cutoff) %>% nrow(),
+      n_down = filter(as.data.frame(results), padj < padj_cutoff & log2FoldChange < logFC_cutoff) %>% nrow())
+      )
+  }
+
+  # summary of the results at different pvalue cutoffs
+  pvalue_summary <- data.frame()
+  for (pvalue_cutoff in pvalue_cutoffs) {
+    pvalue_summary <- rbind(
+      pvalue_summary, 
+      data.frame(sign_cutoff = paste0("pvalue < ", pvalue_cutoff), n_genes = filter(as.data.frame(results), pvalue < pvalue_cutoff) %>% nrow(),
+      n_up = filter(as.data.frame(results), pvalue < pvalue_cutoff & log2FoldChange > logFC_cutoff) %>% nrow(),
+      n_down = filter(as.data.frame(results), pvalue < pvalue_cutoff & log2FoldChange < -logFC_cutoff) %>% nrow())
+      )
+  }
+
+  # combine the summaries
+  summary <- rbind(padj_summary, pvalue_summary)
+  return(summary)
 }
-CountTableFromFeatureCounts <- function (directory = ".", pattern = "featureCounts.txt$", idx = 7, ... ) {
-    if (missing(directory)) 
-        stop("directory is missing")
-    fl <- list.files(directory, pattern = pattern, full.names = TRUE, recursive = TRUE)
-    message("reading ", length(fl), " samples ...")
-    sample_names <- basename(fl)
-    l <- purrr::map(fl, ReadFeatureCounts, idx = idx, ...)
-    tbl <- purrr::reduce(l, inner_join) 
-    return(tbl)
+
+#' Function to summarize results more generally
+#' Arguments:
+#'   results: results of differential expression analysis
+#'   logFC_column: column to use for logFC
+#'   pvalue_column: column to use for pvalue
+#'   padj_column: column to use for padj
+#'   padj_cutoffs: list of padj cutoffs to use
+#'   pvalue_cutoffs: list of pvalue cutoffs to use
+#'   logFC_cutoff: logFC cutoff to use
+#' Outputs:
+#'   summary of results
+summarize_experiment <- function(
+  results, 
+  logFC_column = "log2FoldChange",
+  pvalue_column = "pvalue",
+  padj_column = "padj",
+  pvalue_cutoffs = c(0.01, 0.05, 0.1), 
+  padj_cutoffs = c(0.05, 0.1, 0.2), 
+  logFC_cutoff = 0
+  ) {
+  # summary of the results at different padj cutoffs
+  summary <- data.frame(
+    variable = character(),
+    p_cutoff = numeric(),
+    fc_cutoff = numeric(),
+    n_sig = numeric(),
+    n_up = numeric(),
+    n_down = numeric()
+  )
+  lapply(pvalue_cutoffs, function(pvalue_cutoff) {
+    summary <<- summary %>% 
+      add_row(
+        variable = "pvalue",
+        cutoff = pvalue_cutoff,
+        fc_cutoff = logFC_cutoff,
+        n_sig = sum(results[[pvalue_column]] < pvalue_cutoff),
+        n_up = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] > logFC_cutoff),
+        n_down = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] < -logFC_cutoff)
+      )
+  })
+  lapply(padj_cutoffs, function(padj_cutoff) {
+    summary <<- summary %>% 
+      add_row(
+        variable = "padj",
+        cutoff = padj_cutoff,
+        fc_cutoff = logFC_cutoff,
+        n_sig = sum(results[[padj_column]] < padj_cutoff),
+        n_up = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] > logFC_cutoff),
+        n_down = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] < -logFC_cutoff)
+      )
+  })
+  return(summary)
+}
+
+#' Function to compare different results
+#' Arguments:
+#'  results 1: results of differential expression analysis
+#'  results 2: results of differential expression analysis
+#'  metric: metric to compare (default is log2FoldChange)
+#'  by: column to join by (default is NULL)
+#' Outputs:
+#'  data frame of comparison results
+compare_results <-  function(res1, res2, metric = "log2FoldChange", by = "rowname", suffix = c("_1", "_2")) {
+  res1 <- as.data.frame(res1)
+  res2 <- as.data.frame(res2)
+  # ensure the metric and labels are in the results
+  if (!metric %in% c(colnames(res1), "rowname")) {
+    stop("metric not in results 1")
+  }
+  out <- inner_join(
+    res1 %>% rownames_to_column("rowname"),
+    res2 %>% rownames_to_column("rowname"),
+    by = by,
+    suffix = suffix
+    )
+  # return the data frame
+  return(out)
 }

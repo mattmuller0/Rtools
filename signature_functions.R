@@ -20,7 +20,25 @@ source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functi
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/plotting_functions.R")
 source("https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_functions.R")
 
-#======================== CODE ========================
+message("
+
+                                          .db--D,
+                                          db( o\o
+                              _____       /  ,_  \
+                       ,,---~~     ~~~~--;   / ~-,$
+                      /    __               /
+                     /    /  \             /
+                    (    ;    \,           )
+                     |  |       '--__;--   /
+                     ) )                \ |
+                    / /                 |:|
+                   / /                  |;|
+                   (||                  |:|
+                   |,\                  |:!
+ _________________.\LLe._______________.\\Le.__Pr59_____
+")
+
+#======================== Testing Functions ========================
 #' Function to compare one column to many columns
 #' Arguments:
 #'   - df: data frame
@@ -49,7 +67,7 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
             # numeric data
             stats_results <- df %>%
                 rstatix::cor_test(col, x, method = "spearman") %>%
-                select(variable = var2, method = method, estimate = cor, p = p) # nolint
+                dplyr::select(variable = var2, method = method, estimate = cor, p = p) # nolint
             plot_results <- base_plot + geom_point() + geom_smooth(method = "lm") + stat_cor(method = "spearman")
         } else if (data_type %in% c("character", "factor")) {
             # get the number of unique values
@@ -58,16 +76,16 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
                 # categorical data with < 2 unique values
                 stats_results <- df %>%
                     rstatix::t_test(as.formula(glue::glue("{col} ~ {x}"))) %>%
-                    mutate(variable = x, method = "t.test") %>%
-                    select(variable, method, estimate = statistic, p = p) # nolint
+                    dplyr::mutate(variable = x, method = "t.test") %>%
+                    dplyr::select(variable, method, estimate = statistic, p = p) # nolint
                 plot_results <- base_plot + geom_boxplot() + stat_compare_means(method = "t.test")
             } else {
                 # categorical data with > 2 unique values
                 stats_results <- df %>%
                     rstatix::anova_test(as.formula(glue::glue("{col} ~ {x}"))) %>%
                     dplyr::as_tibble() %>%
-                    mutate(method = "anova") %>%
-                    select(variable = Effect, method, estimate = F, p = p) # nolint
+                    dplyr::mutate(method = "anova") %>%
+                    dplyr::select(variable = Effect, method, estimate = F, p = p) # nolint
                 plot_results <- base_plot + geom_boxplot() + stat_compare_means(method = "anova")
             }
         } else {

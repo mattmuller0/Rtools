@@ -34,13 +34,15 @@ suppressMessages(library(tidyverse))
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
-theme_set(theme_bw(22))
+theme_set(theme_bw(16))
 
 ###########################################################################
 #
 #                                 CODE
 #
 ###########################################################################
+
+#======================== Plotting Functions ========================
 # Function to plot library depth of summarized experiment object
 # Arguments:
 #   dds: DESeq2 object
@@ -95,11 +97,7 @@ plot_percent_genes_detected <- function(dds, title, min_value = 0) {
 #   normalize: type of normalization to use
 # Outputs:
 #   plot of complex heatmap
-plot_gene_heatmap <- function(
-    dds, title, annotations=NULL, normalize = "log2-mor",
-    ... # additional arguments to pass to Heatmap
-    
-    ) {
+plot_gene_heatmap <- function(dds, title=character(0), annotations=NULL, normalize = "vst", ...) {
     # scale by row
     norm_counts <- normalize_counts(dds, method = normalize)
     norm_counts <- t(scale(t(norm_counts)))
@@ -138,17 +136,16 @@ plot_gene_heatmap <- function(
     return(heatmap)
 }
 
-
-# Function to plot enrichment from gse object
-# Arguments:
-#   gse: gse object
-#   terms2plot: list of terms to plot
-#   plotter: function to plot enrichment
-#   title: title of plot
-#   qvalueCutoff: qvalue cutoff
-#   ...: additional arguments to pass to ggplot
-# Outputs:
-#   plot of enrichment
+#' Function to plot enrichment from gse object
+#' Arguments:
+#'   gse: gse object
+#'   terms2plot: list of terms to plot
+#'   plotter: function to plot enrichment
+#'   title: title of plot
+#'   qvalueCutoff: qvalue cutoff
+#'   ...: additional arguments to pass to ggplot
+#' Outputs:
+#'   plot of enrichment
 plot_enrichment_terms <- function(
   gse, 
   title = 'Enrichment Plot', 
@@ -270,32 +267,6 @@ plot_correlations <- function(res, title, outpath) {
   ggsave(file.path(outpath, paste0(title, '_correlations.pdf')), p)
 }
 
-# ggplot2 custom theme based upon theme_classic
-theme_matt <- function(base_size = 22, base_family = "", ...) {
-  require(ggplot2)
-  theme_matt_ <- theme_bw(base_size = base_size, base_family = base_family) %+replace%
-    theme(
-        # set the size of the text
-        axis.text.x = element_text(size = base_size * 0.9, colour = "black"),
-        axis.text.y = element_text(size = base_size * 0.9, colour = "black"),
-        legend.text = element_text(size = base_size * 0.9, colour = "black"),
-        legend.title = element_text(size = base_size * 0.9, colour = "black"),
-        # set the legend parameters
-        legend.key.size = unit(1.25, "lines"),
-        legend.background = element_blank(),
-        # small box around legend
-        legend.box.background = element_rect(colour = "black", size = 0.5),
-        legend.box.margin = margin(6, 6, 6, 6),
-        legend.margin = margin(0, 0, 0, 0),
-        # set the plot parameters
-        plot.title = element_text(size = base_size * 1.2, colour = "black", face = "bold"),
-        plot.subtitle = element_text(size = base_size * 1.0, colour = "black"),
-        plot.caption = element_text(size = base_size * 0.9, colour = "black"),
-        ...
-    )
-  return(theme_matt_)
-}
-
 # Function to make annotation color maps for continuous variables and categorical variables
 # Arguments:
 #   df: data frame of annotations
@@ -383,7 +354,6 @@ plot_ggplot_table <- function(df, columns, axis, size = 5, ...) {
   # Return the plot table
   return(p)
 }
-
 
 # Function to plot a clinical factors heatmap
 # Arguments:
@@ -602,7 +572,6 @@ plot_volcano <- function(
     return(out)
 }
 
-
 # Function to plot the correlation matrix
 # Arguments:
 #   - cor_mat: data.frame, correlation matrix
@@ -635,7 +604,7 @@ plot_correlation_matrix <- function(cor_mat, title = '', xlab = '', ylab = '', x
     plot <- ggplot(long_cor_mat, aes(x = var1, y = var2)) +
     geom_point(aes(size = abs(cor), fill = factor(sign(cor))), pch=21, alpha = 0.75) +
     scale_size_continuous(range = c(1, 8)) +
-    scale_fill_manual(values = c('blue', 'red'), labels = c('Negative', 'Positive')) +
+    scale_fill_manual(values = c("1" = "red", "-1" = "blue"), labels = c("1" = "Positive", "-1" = "Negative"))
     # theme
     labs(
       title = title,
@@ -682,7 +651,6 @@ plot_forest <- function(
   if (!is.null(facet)) {plot <- plot + facet_grid(facet)}
     return(plot)
   }
-
 
 plot_stratified_forest <- function(
   df, 
@@ -755,6 +723,33 @@ plot_stratified_forest <- function(
           rel_widths = c(1, 0.75),
           align = "h", axis = "bt"
       )
+}
+
+#======================== Shortcut Objects ========================
+# ggplot2 custom theme based upon theme_classic
+theme_matt <- function(base_size = 16, base_family = "", ...) {
+  require(ggplot2)
+  theme_matt_ <- theme_bw(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+        # set the size of the text
+        axis.text.x = element_text(size = base_size * 0.9, colour = "black"),
+        axis.text.y = element_text(size = base_size * 0.9, colour = "black"),
+        legend.text = element_text(size = base_size * 0.9, colour = "black"),
+        legend.title = element_text(size = base_size * 0.9, colour = "black"),
+        # set the legend parameters
+        legend.key.size = unit(1.25, "lines"),
+        legend.background = element_blank(),
+        # small box around legend
+        legend.box.background = element_rect(colour = "black", size = 0.5),
+        legend.box.margin = margin(6, 6, 6, 6),
+        legend.margin = margin(0, 0, 0, 0),
+        # set the plot parameters
+        plot.title = element_text(size = base_size * 1.2, colour = "black", face = "bold"),
+        plot.subtitle = element_text(size = base_size * 1.0, colour = "black"),
+        plot.caption = element_text(size = base_size * 0.9, colour = "black"),
+        ...
+    )
+  return(theme_matt_)
 }
 
 

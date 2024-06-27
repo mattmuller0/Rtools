@@ -18,6 +18,42 @@ suppressMessages(library(AnnotationDbi))
 # space reserved for sourcing in functions
 source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functions.R')
 
+message("
+     | \          .-'               |    \     .- |__
+     |  -,-.-.   '-. _  \_.\_.  .   |     || | `. |
+     |  |  | |     || `\|  |  \_|   |  `._/`-'_.' |
+     '          '-' `._/     .  |   |             `-'
+                       |      `-'                _  .
+      _  _  .  \ |__   |     _     .-.  _    _ .' | |
+     /  | `||,-. |     |--. /-'   |  __| `\/' ||  | |
+     ._ `-'`|  | |     |   |\_,   |   |`._/\_.' \_| '
+               ` '-    |`-'__      `-'              o
+                      ,-'`` .'
+       /`.           /   .'`    .-;   .-.
+      /   \          |   \_  _,' /-,_  \ `.
+     / _ .-'    _.---:.    `'    _.-'_.'   )
+     '` \\   ,;'               .  \ `     ,'
+         ')    `7_,             `'-;   .-'-.._
+        //   ,;-'`        .-''. ,-.        _.f`
+      .'/   .-'`\ _      .-'`\ \ _ `'-       >
+     / /   /    /` \   ,'     ; / `'.      ,-''-.
+    |  |  |     \   \ /       |;     \   ,'      `.
+    \   '.;      `.  \,-.     ||       _/         |
+_mx__`.___\\    / L\  \  \._O_;|O__ .'`          /________
+            `.  |  `'-.(  | _..--''/         _.-`
+              `-.`.__.p \v-'       \_/  ,  ;`          /.
+           '.----'L__p\ '.          v|  |   \ `'-._   /  \
+             `.   '.__b\  \       _~  v-'`v-' ,\'  `.'   |
+               `.       `<~|   .-'  ,' _ _.'`   _.'     /
+                 `.       `' '_,-''  ,.-''`-  _.'      .'
+                   `.       \'  _,,='      ,-'     _.-'
+                     `.         _  __ _.-'     _.-'
+                       `.      `. `  `     _.-'
+                         `.      \     _.-'
+                           `.     |_.-'
+                             `-._.'
+")
+
 #======================== CODE ========================#
 
 # Function to get olink sample info
@@ -227,9 +263,9 @@ olink_analysis <- function(
     ) {
     dir.create(outdir, showWarnings = F)
     
-    # make sure the condition is in the data
-    if (!conditions %in% colnames(data)) {
-        stop(glue('Condition {condition} not in data'))
+    # make sure the conditions are in the data
+    if (!all(conditions %in% colnames(data))) {
+        stop('Conditions not in data')
     }
 
     de_res <- list()
