@@ -46,7 +46,7 @@ summarize_experiment <- function(
     summary <<- summary %>% 
       add_row(
         variable = "pvalue",
-        cutoff = pvalue_cutoff,
+        p_cutoff = pvalue_cutoff,
         fc_cutoff = logFC_cutoff,
         n_sig = sum(results[[pvalue_column]] < pvalue_cutoff),
         n_up = sum(results[[pvalue_column]] < pvalue_cutoff & results[[logFC_column]] > logFC_cutoff),
@@ -57,7 +57,7 @@ summarize_experiment <- function(
     summary <<- summary %>% 
       add_row(
         variable = "padj",
-        cutoff = padj_cutoff,
+        p_cutoff = padj_cutoff,
         fc_cutoff = logFC_cutoff,
         n_sig = sum(results[[padj_column]] < padj_cutoff),
         n_up = sum(results[[padj_column]] < padj_cutoff & results[[logFC_column]] > logFC_cutoff),

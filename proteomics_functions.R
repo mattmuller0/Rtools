@@ -281,8 +281,8 @@ olink_analysis <- function(
         ggsave(glue('{outdir}/{condition}/volcano.pdf'), p, width = 6, height = 6)
         write.csv(de, glue('{outdir}/{condition}/de_results.csv'), row.names = F)
         de_res[[condition]] <- de
-        # r <- summarize_experiment(de, logFC_column = "estimate", pvalue_column = "p.value", padj_column = "Adjusted_pval")
-        # print(r)
+        r <- summarize_experiment(de, logFC_column = "estimate", pvalue_column = "p.value", padj_column = "Adjusted_pval")
+        print(r)
 
         # get the pathway analysis
         message('Running pathway analysis')
