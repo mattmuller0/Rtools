@@ -270,7 +270,9 @@ olink_analysis <- function(
 
     de_res <- list()
     gsea_res <- list()
-    for (condition in conditions)
+    res <- list()
+    message("Looping over: ", paste0(conditions, collapse = ", "))
+    for (condition in conditions) {
         dir.create(glue('{outdir}/{condition}'), showWarnings = F)
         # get the differential expression
         message('Running differential expression')
@@ -279,6 +281,8 @@ olink_analysis <- function(
         ggsave(glue('{outdir}/{condition}/volcano.pdf'), p, width = 6, height = 6)
         write.csv(de, glue('{outdir}/{condition}/de_results.csv'), row.names = F)
         de_res[[condition]] <- de
+        # r <- summarize_experiment(de, logFC_column = "estimate", pvalue_column = "p.value", padj_column = "Adjusted_pval")
+        # print(r)
 
         # get the pathway analysis
         message('Running pathway analysis')
@@ -288,8 +292,11 @@ olink_analysis <- function(
         ggsave(glue('{outdir}/{condition}/gsea.pdf'), p, width = 12, height = 8)
         p <- do.call(olink_pathway_heatmap, list(gsea, de))
         ggsave(glue('{outdir}/{condition}/gsea_heatmap.pdf'), p, width = 12, height = 8)
-
         gsea_res[[condition]] <- gsea
+    }
+
+    # res <- do.call(rbind, res)
+    write.csv(res, glue('{outdir}/experiment_summary.csv'), row.names = F)
 
     # return the results
     message('Done with analysis')
