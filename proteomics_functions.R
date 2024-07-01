@@ -282,7 +282,8 @@ olink_analysis <- function(
         write.csv(de, glue('{outdir}/{condition}/de_results.csv'), row.names = F)
         de_res[[condition]] <- de
         r <- summarize_experiment(de, logFC_column = "estimate", pvalue_column = "p.value", padj_column = "Adjusted_pval")
-        print(r)
+        r$condition <- condition
+        res[[condition]] <- r
 
         # get the pathway analysis
         message('Running pathway analysis')
@@ -295,7 +296,7 @@ olink_analysis <- function(
         gsea_res[[condition]] <- gsea
     }
 
-    # res <- do.call(rbind, res)
+    res <- do.call(rbind, res)
     write.csv(res, glue('{outdir}/experiment_summary.csv'), row.names = F)
 
     # return the results
