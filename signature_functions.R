@@ -99,3 +99,28 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
     write.csv(stats_list, glue::glue("{outdir}/stats_results.csv"))
     return(list(stats = stats_list, plots = plot_list))
 }
+
+#======================== Eigengene Functions ========================
+#' Function to calculate eigengenes by principal component analysis
+#' Arguments:
+#'  - df: data frame [samples x genes]
+#'  - outdir: output directory
+#'  - center: logical, center the data
+#'  - scale: logical, scale the data
+#'  - ...: additional arguments to pass to stats functions
+#' Returns:
+#' - dataframe with eigengenes
+eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, ...) {
+    requireNamespace("ggbiplot", quietly = TRUE)
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    
+    # run PCA
+    pca_res <- prcomp(t(df), center = center, scale = scale, ...)
+
+    biplot <- ggbiplot::ggbiplot(pca_res, obs.scale = 1, var.scale = 0.5, groups = NULL, ellipse = TRUE)
+    ggsave(glue::glue("{outdir}/biplot.pdf"), biplot)
+    
+    eigengenes <- pca_res$x
+    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+    return(eigengenes)
+}
