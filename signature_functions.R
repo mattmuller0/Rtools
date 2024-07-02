@@ -110,17 +110,27 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
 #'  - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, ...) {
+eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
     requireNamespace("ggbiplot", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run PCA
-    pca_res <- prcomp(t(df), center = center, scale = scale, ...)
+    pca_res <- prcomp(df, center = center, scale = scale, ...)
 
     biplot <- ggbiplot::ggbiplot(pca_res, obs.scale = 1, var.scale = 0.5, groups = NULL, ellipse = TRUE)
     ggsave(glue::glue("{outdir}/biplot.pdf"), biplot)
     
-    eigengenes <- pca_res$x
+    eigengenes <- as.data.frame(pca_res$x[, pcs])
+    colnames(eigengenes) <- glue::glue("PC{pcs}")
+
+    # align average expression
+    if (align_avg_expr) {
+        avg_expr <- rowMeans(df)
+        corrs <- cor(eigengenes, avg_expr)
+        print(corrs)
+        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    }
+
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
 }
