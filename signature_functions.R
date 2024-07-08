@@ -134,3 +134,128 @@ eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
 }
+
+#' Function to calculate eigengenes by singular value decomposition
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - outdir: output directory
+#' - pcs: number of principal components to return
+#' - center: logical, center the data
+#' - scale: logical, scale the data
+#' - ...: additional arguments to pass to stats functions
+#' Returns:
+#' - dataframe with eigengenes
+eigengenes_svd <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    
+    # run SVD
+    svd_res <- svd(scale(df, center = center, scale = scale), ...)
+
+    eigengenes <- as.data.frame(svd_res$v[, pcs])
+    colnames(eigengenes) <- glue::glue("PC{pcs}")
+
+    # align average expression
+    if (align_avg_expr) {
+        avg_expr <- rowMeans(df)
+        corrs <- cor(eigengenes, avg_expr)
+        print(corrs)
+        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    }
+
+    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+    return(eigengenes)
+}
+
+#' Function to calculate eigengenes by non-negative matrix factorization
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - outdir: output directory
+#' - pcs: number of principal components to return
+#' - center: logical, center the data
+#' - scale: logical, scale the data
+#' - ...: additional arguments to pass to stats functions
+#' Returns:
+#' - dataframe with eigengenes
+eigengenes_nmf <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+    requireNamespace("NMF", quietly = TRUE)
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    
+    # run NMF
+    nmf_res <- NMF::nmf(as.matrix(df), rank = pcs, seed = 420)
+
+    eigengenes <- as.data.frame(NMF::basis(nmf_res))
+    colnames(eigengenes) <- glue::glue("PC{pcs}")
+
+    # align average expression
+    if (align_avg_expr) {
+        avg_expr <- rowMeans(df)
+        corrs <- cor(eigengenes, avg_expr)
+        print(corrs)
+        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    }
+
+    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+    return(eigengenes)
+}
+
+#' Function to calculate eigengenes by independent component analysis
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - outdir: output directory
+#' - pcs: number of principal components to return
+#' - center: logical, center the data
+#' - scale: logical, scale the data
+#' - ...: additional arguments to pass to stats functions
+#' Returns:
+#' - dataframe with eigengenes
+eigengenes_ica <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+    requireNamespace("fastICA", quietly = TRUE)
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+
+    # run ICA
+    ica_res <- fastICA::fastICA(scale(df, center = center, scale = scale), n.comp = pcs, ...)
+
+    eigengenes <- as.data.frame(ica_res$S)
+    colnames(eigengenes) <- glue::glue("PC{pcs}")
+
+    # align average expression
+    if (align_avg_expr) {
+        avg_expr <- rowMeans(df)
+        corrs <- cor(eigengenes, avg_expr)
+        print(corrs)
+        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    }
+
+    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+    return(eigengenes)
+}
+
+#' Function to calculate eigengenes by a generalized linear model
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - outdir: output directory
+#' - scale: logical, scale the data
+#' - center: logical, center the data
+#' - ...: additional arguments to pass to stats functions
+#' Returns:
+#' - dataframe with eigengenes
+eigengenes_glm <- function(df, outdir, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    
+    # run GLM
+    glm_res <- glmnet::cv.glmnet(scale(df, center = center, scale = scale), type.measure="mse", ...)
+
+    eigengenes <- as.data.frame(glm_res$glmnet.fit$beta)
+    colnames(eigengenes) <- glue::glue("PC{1:ncol(eigengenes)}")
+
+    # align average expression
+    if (align_avg_expr) {
+        avg_expr <- rowMeans(df)
+        corrs <- cor(eigengenes, avg_expr)
+        print(corrs)
+        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    }
+
+    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+    return(eigengenes)
+}
