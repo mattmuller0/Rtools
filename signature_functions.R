@@ -244,7 +244,7 @@ eigengenes_nmf <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
     return(eigengenes)
 }
 
-#' Function to calculate eigengenes by independent component analysis
+#' Function to calculate eigengenes by independent component analysis (WIP)
 #' Arguments:
 #' - df: data frame [samples x genes]
 #' - outdir: output directory
@@ -292,6 +292,7 @@ eigengenes_glm <- function(df, response, outdir, center = TRUE, scale = TRUE, fa
     # run GLM
     glm_res <- glmnet::cv.glmnet(scale(df, center = center, scale = scale), response, family = family, type.measure = type.measure, ...)
     glm_tidy <- broom::tidy(glm_res)
+    saveRDS(glm_res, glue::glue("{outdir}/glmnet_model.rds"))
     
     pdf(glue::glue("{outdir}/glmnet_plot.pdf"))
     plot(glm_res)
