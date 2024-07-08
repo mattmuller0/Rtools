@@ -37,6 +37,52 @@ message("
  _________________.\\Le._______________.\\Le.__Pr59_____
 ")
 
+#======================== Data Preprocessing Functions ========================
+#' Function to select top genes by variance
+#' Arguments:
+#'  - df: data frame [samples x genes]
+#'  - n: number of top genes to select
+#' Returns:
+#'  - data frame with columns [genes, variance]
+select_top_variability <- function(df, n = 1000) {
+    variances <- apply(df, 2, var)
+    top_genes <- names(sort(variances, decreasing = TRUE)[1:n])
+    return(data.frame(genes = top_genes, variance = variances[top_genes]))
+}
+
+#' Function to filter genes by expression
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - min_expr: minimum expression value
+#' Returns:
+#' - data frame with filtered genes [genes, expression]
+select_top_expression <- function(df, min_expr = 1) {
+    exprs <- apply(df, 2, function(x) sum(x > min_expr))
+    filtered_genes <- names(exprs[exprs > 0])
+    return(data.frame(genes = filtered_genes, expression = exprs[filtered_genes]))
+}
+
+#' Function to filter genes by lasso regression
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - y: response variable
+#' - lambda: lambda value for lasso regression
+#' - nfolds: number of cross-validation folds
+#' - ...: additional arguments to pass to lasso function
+#' Returns:
+#' - data frame with filtered genes [genes, coefficient]
+#' - data frame with lasso results
+select_top_lasso <- function(df, y, lambda = NULL, nfolds = 10, ...) {
+    requireNamespace("glmnet", quietly = TRUE)
+    lasso_res <- glmnet::cv.glmnet(df, y, alpha = alpha, lambda = lambda, nfolds = nfolds, ...)
+    message(glue::glue("Selected lambda: {lasso_res$lambda.min}"))
+    coef <- as.data.frame(coef(lasso_res, s = "lambda.min"))
+    coef <- coef[coef[, 1] != 0, ]
+    return(coef)
+}
+
+
+
 #======================== Testing Functions ========================
 #' Function to compare one column to many columns
 #' Arguments:
@@ -135,7 +181,7 @@ eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
     return(eigengenes)
 }
 
-#' Function to calculate eigengenes by singular value decomposition
+#' Function to calculate eigengenes by singular value decomposition (WIP)
 #' Arguments:
 #' - df: data frame [samples x genes]
 #' - outdir: output directory
@@ -166,7 +212,7 @@ eigengenes_svd <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
     return(eigengenes)
 }
 
-#' Function to calculate eigengenes by non-negative matrix factorization
+#' Function to calculate eigengenes by non-negative matrix factorization (WIP)
 #' Arguments:
 #' - df: data frame [samples x genes]
 #' - outdir: output directory
@@ -233,29 +279,26 @@ eigengenes_ica <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
 #' Function to calculate eigengenes by a generalized linear model
 #' Arguments:
 #' - df: data frame [samples x genes]
+#' - response: response variable
 #' - outdir: output directory
 #' - scale: logical, scale the data
 #' - center: logical, center the data
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_glm <- function(df, outdir, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+eigengenes_glm <- function(df, response, outdir, center = TRUE, scale = TRUE, family = "gaussian", type.measure = "mse", ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run GLM
-    glm_res <- glmnet::cv.glmnet(scale(df, center = center, scale = scale), type.measure="mse", ...)
+    glm_res <- glmnet::cv.glmnet(scale(df, center = center, scale = scale), response, family = family, type.measure = type.measure, ...)
+    glm_tidy <- broom::tidy(glm_res)
+    
+    pdf(glue::glue("{outdir}/glmnet_plot.pdf"))
+    plot(glm_res)
+    dev.off()
 
-    eigengenes <- as.data.frame(glm_res$glmnet.fit$beta)
-    colnames(eigengenes) <- glue::glue("PC{1:ncol(eigengenes)}")
-
-    # align average expression
-    if (align_avg_expr) {
-        avg_expr <- rowMeans(df)
-        corrs <- cor(eigengenes, avg_expr)
-        print(corrs)
-        eigengenes <- as.vector(sign(corrs)) * eigengenes
-    }
-
+    # get the eigengenes as the predictions from the model
+    eigengenes <- predict(glm_res, s = "lambda.min", newx = scale(df, center = center, scale = scale))
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
 }
