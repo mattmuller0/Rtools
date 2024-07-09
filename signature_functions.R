@@ -163,6 +163,10 @@ eigengenes_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 
     biplot <- ggbiplot::ggbiplot(pca_res, obs.scale = 1, var.scale = 0.5, groups = NULL, ellipse = TRUE)
     ggsave(glue::glue("{outdir}/biplot.pdf"), biplot)
+
+    # save the loading vectors
+    loadings <- as.data.frame(pca_res$rotation)
+    write.csv(loadings, glue::glue("{outdir}/loadings.csv"))
     
     eigengenes <- as.data.frame(pca_res$x[, pcs])
     colnames(eigengenes) <- glue::glue("PC{pcs}")
