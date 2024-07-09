@@ -151,17 +151,15 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
 #' Arguments:
 #'  - df: data frame [samples x genes]
 #'  - outdir: output directory
-#'  - center: logical, center the data
-#'  - scale: logical, scale the data
 #'  - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+eigengenes_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("ggbiplot", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run PCA
-    pca_res <- prcomp(df, center = center, scale = scale, ...)
+    pca_res <- prcomp(df, ...)
 
     biplot <- ggbiplot::ggbiplot(pca_res, obs.scale = 1, var.scale = 0.5, groups = NULL, ellipse = TRUE)
     ggsave(glue::glue("{outdir}/biplot.pdf"), biplot)
@@ -186,16 +184,14 @@ eigengenes_pca <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
 #' - df: data frame [samples x genes]
 #' - outdir: output directory
 #' - pcs: number of principal components to return
-#' - center: logical, center the data
-#' - scale: logical, scale the data
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_svd <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+eigengenes_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
-    svd_res <- svd(scale(df, center = center, scale = scale), ...)
+    svd_res <- svd(df, ...)
 
     eigengenes <- as.data.frame(svd_res$v[, pcs])
     colnames(eigengenes) <- glue::glue("PC{pcs}")
@@ -217,12 +213,10 @@ eigengenes_svd <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
 #' - df: data frame [samples x genes]
 #' - outdir: output directory
 #' - pcs: number of principal components to return
-#' - center: logical, center the data
-#' - scale: logical, scale the data
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_nmf <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+eigengenes_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("NMF", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -249,17 +243,15 @@ eigengenes_nmf <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
 #' - df: data frame [samples x genes]
 #' - outdir: output directory
 #' - pcs: number of principal components to return
-#' - center: logical, center the data
-#' - scale: logical, scale the data
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_ica <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, align_avg_expr = FALSE, ...) {
+eigengenes_ica <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("fastICA", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
 
     # run ICA
-    ica_res <- fastICA::fastICA(scale(df, center = center, scale = scale), n.comp = pcs, ...)
+    ica_res <- fastICA::fastICA(df, n.comp = pcs, ...)
 
     eigengenes <- as.data.frame(ica_res$S)
     colnames(eigengenes) <- glue::glue("PC{pcs}")
@@ -286,11 +278,11 @@ eigengenes_ica <- function(df, outdir, pcs = 1:3, center = TRUE, scale = TRUE, a
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_glm <- function(df, response, outdir, center = TRUE, scale = TRUE, family = "gaussian", type.measure = "mse", ...) {
+eigengenes_glm <- function(df, response, outdir, family = "gaussian", type.measure = "mse", ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run GLM
-    glm_res <- glmnet::cv.glmnet(scale(df, center = center, scale = scale), response, family = family, type.measure = type.measure, ...)
+    glm_res <- glmnet::glmnet(df, response, family = family, type.measure = type.measure, ...)
     glm_tidy <- broom::tidy(glm_res)
     saveRDS(glm_res, glue::glue("{outdir}/glmnet_model.rds"))
     
@@ -299,7 +291,9 @@ eigengenes_glm <- function(df, response, outdir, center = TRUE, scale = TRUE, fa
     dev.off()
 
     # get the eigengenes as the predictions from the model
-    eigengenes <- predict(glm_res, s = "lambda.min", newx = scale(df, center = center, scale = scale))
+    eigengenes <- predict(glm_res, newx = df)
+    eigengenes <- as.data.frame(eigengenes)
+    print(eigengenes)
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
 }
