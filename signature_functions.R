@@ -154,7 +154,7 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
 #'  - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigen_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("ggbiplot", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -191,7 +191,7 @@ eigengenes_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigen_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
@@ -219,7 +219,7 @@ eigengenes_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigen_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("NMF", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -249,7 +249,7 @@ eigengenes_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_ica <- function(df, outdir, n.comp = 1:3, align_avg_expr = FALSE, ...) {
+eigen_ica <- function(df, outdir, n.comp = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("fastICA", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
 
@@ -281,7 +281,7 @@ eigengenes_ica <- function(df, outdir, n.comp = 1:3, align_avg_expr = FALSE, ...
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_glm <- function(df, response, outdir, family = "gaussian", type.measure = "mse", ...) {
+eigen_glm <- function(df, response, outdir, family = "gaussian", type.measure = "mse", ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run GLM
