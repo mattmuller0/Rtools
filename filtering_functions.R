@@ -123,7 +123,7 @@ rna_preprocessing <- function(
          subtitle = "",
          x = "",
          y = "")
-  ggsave(file.path(outpath, "sample_outliers.pdf"), dpi = 300)
+  ggsave(file.path(outpath, "sample_outliers.pdf"))
 
   # PCA Plot
   message("Checking PCA")

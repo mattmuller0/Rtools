@@ -195,16 +195,15 @@ eigengenes_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
-    svd_res <- svd(df, ...)
+    svd_res <- svd(df, nu = pcs, nv = pcs, ...)
 
     eigengenes <- as.data.frame(svd_res$v[, pcs])
-    colnames(eigengenes) <- glue::glue("PC{pcs}")
+    colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
     if (align_avg_expr) {
         avg_expr <- rowMeans(df)
         corrs <- cor(eigengenes, avg_expr)
-        print(corrs)
         eigengenes <- as.vector(sign(corrs)) * eigengenes
     }
 
@@ -228,7 +227,7 @@ eigengenes_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     nmf_res <- NMF::nmf(as.matrix(df), rank = pcs, seed = 420)
 
     eigengenes <- as.data.frame(NMF::basis(nmf_res))
-    colnames(eigengenes) <- glue::glue("PC{pcs}")
+    colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
     if (align_avg_expr) {
@@ -250,7 +249,7 @@ eigengenes_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigengenes_ica <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigengenes_ica <- function(df, outdir, n.comp = 1:3, align_avg_expr = FALSE, ...) {
     requireNamespace("fastICA", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
 
@@ -258,7 +257,7 @@ eigengenes_ica <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
     ica_res <- fastICA::fastICA(df, n.comp = pcs, ...)
 
     eigengenes <- as.data.frame(ica_res$S)
-    colnames(eigengenes) <- glue::glue("PC{pcs}")
+    colnames(eigengenes) <- glue::glue("eigen_{n.comp}")
 
     # align average expression
     if (align_avg_expr) {
@@ -286,8 +285,7 @@ eigengenes_glm <- function(df, response, outdir, family = "gaussian", type.measu
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run GLM
-    glm_res <- glmnet::glmnet(df, response, family = family, type.measure = type.measure, ...)
-    glm_tidy <- broom::tidy(glm_res)
+    glm_res <- glmnet::cv.glmnet(df, response, family = family, type.measure = type.measure, ...)
     saveRDS(glm_res, glue::glue("{outdir}/glmnet_model.rds"))
     
     pdf(glue::glue("{outdir}/glmnet_plot.pdf"))
@@ -295,7 +293,7 @@ eigengenes_glm <- function(df, response, outdir, family = "gaussian", type.measu
     dev.off()
 
     # get the eigengenes as the predictions from the model
-    eigengenes <- predict(glm_res, newx = df)
+    eigengenes <- predict(glm_res, newx = df, s = "lambda.min")
     eigengenes <- as.data.frame(eigengenes)
     print(eigengenes)
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
