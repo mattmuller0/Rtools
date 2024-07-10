@@ -154,7 +154,7 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
 #'  - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigen_pca <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     requireNamespace("ggbiplot", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -191,7 +191,7 @@ eigen_pca <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigen_svd <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
@@ -219,7 +219,7 @@ eigen_svd <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
+eigen_nmf <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     requireNamespace("NMF", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -249,7 +249,7 @@ eigen_nmf <- function(df, outdir, pcs = 1:3, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_ica <- function(df, outdir, n.comp = 1:3, align_avg_expr = FALSE, ...) {
+eigen_ica <- function(df, outdir, n.comp = 1, align_avg_expr = FALSE, ...) {
     requireNamespace("fastICA", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
 
