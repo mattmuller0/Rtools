@@ -195,7 +195,7 @@ eigen_svd <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
-    svd_res <- svd(df, nu = pcs, nv = pcs, ...)
+    svd_res <- svd(df, nu = min(1, pcs), nv = min(1, pcs), ...)
 
     eigengenes <- as.data.frame(svd_res$v[, pcs])
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
@@ -210,6 +210,35 @@ eigen_svd <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
 }
+
+#' Function to calculate eigengenes by singular value decomposition (WIP)
+#' Arguments:
+#' - df: data frame [samples x genes]
+#' - outdir: output directory
+#' - pcs: number of principal components to return
+#' - ...: additional arguments to pass to stats functions
+#' Returns:
+#' - dataframe with eigengenes
+eigen_svdr <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    
+    # run SVD
+    svd_res <- svd(df, nu = min(1, pcs), nv = min(1, pcs), ...)
+
+    eigengenes <- as.data.frame(svd_res$v[, pcs])
+    colnames(eigengenes) <- glue::glue("eigen_{pcs}")
+
+    # align average expression
+    if (align_avg_expr) {
+        avg_expr <- rowMeans(df)
+        corrs <- cor(eigengenes, avg_expr)
+        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    }
+
+    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+    return(eigengenes)
+}
+
 
 #' Function to calculate eigengenes by non-negative matrix factorization (WIP)
 #' Arguments:
