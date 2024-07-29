@@ -34,6 +34,7 @@ suppressMessages(library(tidyverse))
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
+ht_opt$message = FALSE
 theme_set(theme_bw(16))
 
 ###########################################################################
