@@ -81,6 +81,13 @@ select_top_lasso <- function(df, y, lambda = NULL, nfolds = 10, ...) {
     return(coef)
 }
 
+# make a function to align a signature by average correlation with the derivation values
+align_signature <- function(sig, dat, by = "mean"){
+    corrs <- apply(dat, 2, function(x) cor(x, sig, use = "pairwise.complete.obs"))
+    aln <- do.call(by, list(corrs))
+    return(sig * sign(aln))
+}
+
 
 
 #======================== Testing Functions ========================
