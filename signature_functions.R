@@ -100,7 +100,7 @@ align_signature <- function(sig, dat, by = "mean"){
 #'   - ...: additional arguments to pass to stats functions
 #' Returns:
 #'   - list of stats results and plots
-compare_one_to_many <- function(df, col, cols, outdir, ...) {
+compare_one_to_many <- function(df, col, cols, outdir, plot = TRUE, ...) {
     # set up output directory
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     stats_list <- list()
@@ -144,7 +144,7 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
             stop(glue::glue("Data type {data_type} not supported."))
         }
         # save results
-        ggsave(glue::glue("{outdir}/{col}_vs_{x}.pdf"), plot_results)
+        if (plot) {ggsave(glue::glue("{outdir}/{col}_vs_{x}.pdf"), plot_results)}
         stats_list[[x]] <- stats_results
         plot_list[[x]] <- plot_results
         }
@@ -181,9 +181,7 @@ eigen_pca <- function(df, outdir, pcs = 1, align = TRUE, ...) {
     colnames(eigengenes) <- glue::glue("PC{pcs}")
 
     # align average expression
-    if (align) {
-        eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))
-    }
+    if (align) {eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))}
 
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
@@ -207,14 +205,46 @@ eigen_svd <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
-    if (align) {
-        avg_expr <- rowMeans(df)
-        corrs <- cor(eigengenes, avg_expr)
-        eigengenes <- as.vector(sign(corrs)) * eigengenes
-    }
+    if (align) {eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))}
 
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
+}
+
+#' Function to calculate eigengenes by singular value decomposition (WIP)
+#' Arguments:
+#' - M: data matrix [samples x genes]
+#' - samples: number of samples
+#' - vectors: number of eigenvectors to return
+#' - tau: tau value for distance matrix
+#' - lap: logical, use laplacian distance
+#' - method: distance method
+#' - verbose: logical, print verbose output
+#' Returns:
+#' - dataframe with eigengenes
+eigen_reg_svd <- function(M, samples = nrow(M), vectors = 1:3, tau = 1, lap = FALSE, method = "euclidian", verbose = FALSE){
+    A <- as.matrix(dist(M, method = method))
+    if(verbose) print(glue("Average degree: {mean(colSums(A))}"))
+    avg.d <- mean(colSums(A))
+    A.tau <- A + tau*avg.d/nrow(A)
+    if(!lap){SVD <- svd(A.tau)
+        if(verbose) print("SVD computed")
+        V <- SVD$v
+        V.norm <- apply(V,1,function(x)sqrt(sum(x^2)))
+        V.normalized <- diag(1/V.norm)%*%V
+        } else{
+        if(verbose) print("Laplacian distance computed")
+        d.tau <- colSums(A.tau)
+        L.tau <- diag(1/sqrt(d.tau)) %*% A.tau %*% diag(1/sqrt(d.tau))
+        SVD <- svd(L.tau)
+        V <- SVD$v
+        V.norm <- apply(V,1,function(x)sqrt(sum(x^2)))
+        V.normalized <- diag(1 / V.norm) %*% V
+    }
+    rownames(V.normalized) <- rownames(M)
+    V.normalized <- V.normalized[,vectors]
+    V.normalized.align <- apply(V.normalized, 2, function(x) align_signature(x, M))
+    return(V.normalized.align)
 }
 
 #' Function to calculate eigengenes by singular value decomposition (WIP)
@@ -235,11 +265,7 @@ eigen_svdr <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
-    if (align) {
-        avg_expr <- rowMeans(df)
-        corrs <- cor(eigengenes, avg_expr)
-        eigengenes <- as.vector(sign(corrs)) * eigengenes
-    }
+    if (align) {eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))}
 
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
@@ -265,12 +291,7 @@ eigen_nmf <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
-    if (align) {
-        avg_expr <- rowMeans(df)
-        corrs <- cor(eigengenes, avg_expr)
-        print(corrs)
-        eigengenes <- as.vector(sign(corrs)) * eigengenes
-    }
+    if (align) {eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))}
 
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
@@ -295,42 +316,38 @@ eigen_ica <- function(df, outdir, n.comp = 1, align = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{n.comp}")
 
     # align average expression
-    if (align) {
-        avg_expr <- rowMeans(df)
-        corrs <- cor(eigengenes, avg_expr)
-        print(corrs)
-        eigengenes <- as.vector(sign(corrs)) * eigengenes
-    }
+    if (align) {eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))}
 
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
     return(eigengenes)
 }
 
-#' Function to calculate eigengenes by a generalized linear model
-#' Arguments:
-#' - df: data frame [samples x genes]
-#' - response: response variable
-#' - outdir: output directory
-#' - scale: logical, scale the data
-#' - center: logical, center the data
-#' - ...: additional arguments to pass to stats functions
-#' Returns:
-#' - dataframe with eigengenes
-eigen_glm <- function(df, response, outdir, family = "gaussian", type.measure = "mse", ...) {
-    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+#======================== WIP ========================
+# #' Function to calculate eigengenes by a generalized linear model
+# #' Arguments:
+# #' - df: data frame [samples x genes]
+# #' - response: response variable
+# #' - outdir: output directory
+# #' - scale: logical, scale the data
+# #' - center: logical, center the data
+# #' - ...: additional arguments to pass to stats functions
+# #' Returns:
+# #' - dataframe with eigengenes
+# eigen_glm <- function(df, response, outdir, family = "gaussian", type.measure = "mse", ...) {
+#     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
-    # run GLM
-    glm_res <- glmnet::cv.glmnet(df, response, family = family, type.measure = type.measure, ...)
-    saveRDS(glm_res, glue::glue("{outdir}/glmnet_model.rds"))
+#     # run GLM
+#     glm_res <- glmnet::cv.glmnet(df, response, family = family, type.measure = type.measure, ...)
+#     saveRDS(glm_res, glue::glue("{outdir}/glmnet_model.rds"))
     
-    pdf(glue::glue("{outdir}/glmnet_plot.pdf"))
-    plot(glm_res)
-    dev.off()
+#     pdf(glue::glue("{outdir}/glmnet_plot.pdf"))
+#     plot(glm_res)
+#     dev.off()
 
-    # get the eigengenes as the predictions from the model
-    eigengenes <- predict(glm_res, newx = df, s = "lambda.min")
-    eigengenes <- as.data.frame(eigengenes)
-    print(eigengenes)
-    write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
-    return(eigengenes)
-}
+#     # get the eigengenes as the predictions from the model
+#     eigengenes <- predict(glm_res, newx = df, s = "lambda.min")
+#     eigengenes <- as.data.frame(eigengenes)
+#     print(eigengenes)
+#     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
+#     return(eigengenes)
+# }

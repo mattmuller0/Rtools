@@ -5,8 +5,6 @@
 # 
 # Script Name: Converting Functions Script
 # 
-# Notes:
-# 
 
 # LOAD LIBRARIES ------------------------------------------
 suppressMessages(library(tidyverse))
