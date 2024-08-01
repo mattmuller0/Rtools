@@ -158,10 +158,12 @@ compare_one_to_many <- function(df, col, cols, outdir, ...) {
 #' Arguments:
 #'  - df: data frame [samples x genes]
 #'  - outdir: output directory
+#'  - pcs: number of principal components to return
+#'  - align: logical, align eigengenes by average expression
 #'  - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_pca <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
+eigen_pca <- function(df, outdir, pcs = 1, align = TRUE, ...) {
     requireNamespace("ggbiplot", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -179,11 +181,8 @@ eigen_pca <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("PC{pcs}")
 
     # align average expression
-    if (align_avg_expr) {
-        avg_expr <- rowMeans(df)
-        corrs <- cor(eigengenes, avg_expr)
-        print(corrs)
-        eigengenes <- as.vector(sign(corrs)) * eigengenes
+    if (align) {
+        eigengenes <- apply(eigengenes, 2, function(x) align_signature(x, df))
     }
 
     write.csv(eigengenes, glue::glue("{outdir}/eigengenes.csv"))
@@ -198,7 +197,7 @@ eigen_pca <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_svd <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
+eigen_svd <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
@@ -208,7 +207,7 @@ eigen_svd <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
-    if (align_avg_expr) {
+    if (align) {
         avg_expr <- rowMeans(df)
         corrs <- cor(eigengenes, avg_expr)
         eigengenes <- as.vector(sign(corrs)) * eigengenes
@@ -226,7 +225,7 @@ eigen_svd <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_svdr <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
+eigen_svdr <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
     # run SVD
@@ -236,7 +235,7 @@ eigen_svdr <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
-    if (align_avg_expr) {
+    if (align) {
         avg_expr <- rowMeans(df)
         corrs <- cor(eigengenes, avg_expr)
         eigengenes <- as.vector(sign(corrs)) * eigengenes
@@ -255,7 +254,7 @@ eigen_svdr <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_nmf <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
+eigen_nmf <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     requireNamespace("NMF", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     
@@ -266,7 +265,7 @@ eigen_nmf <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{pcs}")
 
     # align average expression
-    if (align_avg_expr) {
+    if (align) {
         avg_expr <- rowMeans(df)
         corrs <- cor(eigengenes, avg_expr)
         print(corrs)
@@ -285,7 +284,7 @@ eigen_nmf <- function(df, outdir, pcs = 1, align_avg_expr = FALSE, ...) {
 #' - ...: additional arguments to pass to stats functions
 #' Returns:
 #' - dataframe with eigengenes
-eigen_ica <- function(df, outdir, n.comp = 1, align_avg_expr = FALSE, ...) {
+eigen_ica <- function(df, outdir, n.comp = 1, align = FALSE, ...) {
     requireNamespace("fastICA", quietly = TRUE)
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
 
@@ -296,7 +295,7 @@ eigen_ica <- function(df, outdir, n.comp = 1, align_avg_expr = FALSE, ...) {
     colnames(eigengenes) <- glue::glue("eigen_{n.comp}")
 
     # align average expression
-    if (align_avg_expr) {
+    if (align) {
         avg_expr <- rowMeans(df)
         corrs <- cor(eigengenes, avg_expr)
         print(corrs)
