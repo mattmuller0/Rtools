@@ -22,7 +22,7 @@
 suppressMessages(library(ggplot2))
 suppressMessages(library(SummarizedExperiment))
 suppressMessages(library(DESeq2))
-suppressMessages(library(AnnotationDbi))
+# suppressMessages(library(AnnotationDbi))
 suppressMessages(library(ggpubr))
 suppressMessages(library(cowplot))
 suppressMessages(library(ggtree))
@@ -34,6 +34,7 @@ suppressMessages(library(tidyverse))
 # LOAD FUNCTIONS
 # space reserved for sourcing in functions
 options(stringsAsFactors = FALSE)
+ht_opt$message = FALSE
 theme_set(theme_bw(16))
 
 ###########################################################################
