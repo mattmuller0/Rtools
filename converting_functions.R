@@ -14,7 +14,7 @@ suppressMessages(library(glue))
 suppressMessages(library(ggplot2))
 suppressMessages(library(clusterProfiler))
 suppressMessages(library(org.Hs.eg.db))
-suppressMessages(library(AnnotationDbi))
+# suppressMessages(library(AnnotationDbi))
 
 #======================== ID Conversions ========================#
 # Function to map gene IDs with annotationDbi
@@ -27,7 +27,7 @@ suppressMessages(library(AnnotationDbi))
 # Returns:
 #   - out_list: list, converted gene IDs
 map_gene_ids  <- function(geneList, from = NULL, to, orgDb = org.Hs.eg.db, remove_missing = FALSE, ...) {
-    require("AnnotationDbi")
+    # require("AnnotationDbi")
     require("org.Hs.eg.db")
     # if from is NULL, detect the type of gene ID
     if (is.null(from)) {
@@ -43,7 +43,7 @@ map_gene_ids  <- function(geneList, from = NULL, to, orgDb = org.Hs.eg.db, remov
     }
 
     # convert gene ids
-    out_list <- mapIds(orgDb, keys = geneList, column = to, keytype = from, ...)
+    out_list <- AnnotationDbi::mapIds(orgDb, keys = geneList, column = to, keytype = from, ...)
 
     # ake any NA values into the original gene id
     if (remove_missing) {
@@ -160,9 +160,9 @@ detect_gene_id_type <- function(geneList, strip = TRUE) {
 # Returns:
 #   - df2: data.frame, subsetted data frame
 getMatrixWithSelectedIds <- function(df, type, keys) {
-  require("AnnotationDbi")
+  # require("AnnotationDbi")
   require("org.Hs.eg.db")
-  geneSymbols <- mapIds(org.Hs.eg.db, keys=rownames(df), column=c(type), keytype=keys, multiVals="first")
+  geneSymbols <- AnnotationDbi::mapIds(org.Hs.eg.db, keys=rownames(df), column=c(type), keytype=keys, multiVals="first")
   # get the entrez ids with gene symbols i.e. remove those with NA's for gene symbols
   inds <- which(!is.na(geneSymbols))
   found_genes <- geneSymbols[inds]

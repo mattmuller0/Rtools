@@ -11,7 +11,7 @@
 suppressMessages(library(tidyverse))
 suppressMessages(library(clusterProfiler))
 suppressMessages(library(org.Hs.eg.db))
-suppressMessages(library(AnnotationDbi))
+# suppressMessages(library(AnnotationDbi))
 suppressMessages(library(enrichplot))
 suppressMessages(library(forcats))
 suppressMessages(library(ggplot2))
