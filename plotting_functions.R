@@ -22,7 +22,7 @@
 suppressMessages(library(ggplot2))
 suppressMessages(library(SummarizedExperiment))
 suppressMessages(library(DESeq2))
-suppressMessages(library(AnnotationDbi))
+# suppressMessages(library(AnnotationDbi))
 suppressMessages(library(ggpubr))
 suppressMessages(library(cowplot))
 suppressMessages(library(ggtree))
