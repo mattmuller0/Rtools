@@ -345,6 +345,7 @@ install_packages_from_script <- function(script) {
   # Get the packages
   packages <- script[grepl('library', script)]
   packages <- gsub('library\\(', '', packages)
+  packages <- gsub('suppressMessages\\(', '', packages)
   packages <- gsub('\\)', '', packages)
   packages <- gsub('"', '', packages)
   packages <- gsub("'", '', packages)
@@ -378,13 +379,11 @@ install_packages_from_script <- function(script) {
     for (pkg in packages) {
       tryCatch({
         install.packages(pkg, dependencies = TRUE)
-      }, error = function(e) {
-        tryCatch({
-          BiocManager::install(pkg, dependencies = TRUE)
-        }, error = function(e) {
-          print(e)
-        })
-      })
+      }, error = function(e) {print(e)})
+      tryCatch({
+        BiocManager::install(pkg, dependencies = TRUE)
+      }, error = function(e) {print(e)})
     }
   })
+  return(output)
 }
