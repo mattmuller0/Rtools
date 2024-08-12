@@ -362,7 +362,8 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   # expression analysis on each level within the condition column.
   counts <- assay(dds)
   lvls <- levels(colData(dds)[,column])
-  cond <- as.data.frame(colData(dds)) %>% select(any_of(column, controls))
+  coi <- c(column, controls)
+  cond <- as.data.frame(colData(dds)) %>% select(any_of(coi))
 
   # loop over condition levels in a one versus rest manner
   # ideally this for loop could be an apply statement with a custom function, 
