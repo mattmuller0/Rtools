@@ -386,9 +386,9 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     # dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
     # dds_ <- DESeq(dds_)
     # res <- results(dds_, contrast = c("condition", lvl, "rest"))
-    res <- run_deseq(dds_, path, contrast = c("condition", lvl, "rest"))
+    res <- run_deseq(dds, path, contrast = c("condition", lvl, "rest"))
     
-    saveRDS(dds_, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
+    saveRDS(dds, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
     write.csv(res, file=paste0(path, "/dge_results_", column,"__",lvl,"_v_rest.csv"))
     
     volcanoP <- plot_volcano(res, title = paste0(column,"__",lvl,"_v_rest"))
@@ -397,7 +397,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     # make a heatmap of the significant genes
     tryCatch({
       sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
-      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
+      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = c(condiition controls), normalize = "vst")
       pdf(file.path(outpath, "dge_heatmap.pdf"))
       print(heatmapP)
       dev.off()
