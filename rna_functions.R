@@ -377,36 +377,31 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     cond_ <- cond
     cond_[cond_ != lvl] <- "rest"
     dds$condition <- factor(cond_, levels = c("rest", lvl))
-    
-    # create temporary dds objects for analysis
-    input_ <- ifelse(is.null(controls), column, paste0(append(controls, column), collapse = " + "))
+
+    input_ <- ifelse(is.null(controls), "condition", paste0(append(controls, "condition"), collapse = " + "))
     fmla <- as.formula(paste0("~ ", input_))
     design(dds) <- fmla
-
-    # dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
-    # dds_ <- DESeq(dds_)
-    # res <- results(dds_, contrast = c("condition", lvl, "rest"))
     res <- run_deseq(dds, path, contrast = c("condition", lvl, "rest"))
     
-    saveRDS(dds, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
-    write.csv(res, file=paste0(path, "/dge_results_", column,"__",lvl,"_v_rest.csv"))
+    # saveRDS(dds, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
+    # write.csv(res, file=paste0(path, "/dge_results_", column,"__",lvl,"_v_rest.csv"))
     
-    volcanoP <- plot_volcano(res, title = paste0(column,"__",lvl,"_v_rest"))
-    ggsave(paste0(path, "/volcanoPlot_", column,"__",lvl,"_v_rest.pdf"), volcanoP)
+    # volcanoP <- plot_volcano(res, title = paste0(column,"__",lvl,"_v_rest"))
+    # ggsave(paste0(path, "/volcanoPlot_", column,"__",lvl,"_v_rest.pdf"), volcanoP)
 
     # make a heatmap of the significant genes
-    tryCatch({
-      sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
-      heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = c(condiition controls), normalize = "vst")
-      pdf(file.path(outpath, "dge_heatmap.pdf"))
-      print(heatmapP)
-      dev.off()
-    }, error = function(e) {
-      message("An error occurred while generating the heatmap: ", conditionMessage(e))
-    })
+    # tryCatch({
+    #   sign_genes <- res[, pvalue] < pCutoff & abs(res[, "log2FoldChange"]) > FCcutoff
+    #   heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = c(condiition, controls), normalize = "vst")
+    #   pdf(file.path(outpath, "dge_heatmap.pdf"))
+    #   print(heatmapP)
+    #   dev.off()
+    # }, error = function(e) {
+    #   message("An error occurred while generating the heatmap: ", conditionMessage(e))
+    # })
     
-    geneList <- get_fc_list(res)
-    gse <- gsea_analysis(geneList, path)
+    # geneList <- get_fc_list(res)
+    # gse <- gsea_analysis(geneList, path)
 
     list_out[[lvl]] <- res
     }
@@ -415,6 +410,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
 
 #' Function to run deseq on a variety of conditions
 #' Arguments:
+
 #'   dds: DESeq2 object
 #'   conditions: list of conditions to run deseq on
 #'   controls: list of controls to run deseq on
@@ -454,7 +450,7 @@ deseq_analysis <- function(dds, conditions, controls = NULL, outpath, ...) {
       print(paste0("Levels: ", paste0(levels(colData(dds_)[, condition]), collapse = ", ")))
     }
 
-    input_ <- ifelse(is.null(controls), paste0(condition), paste0(append(controls, condition), collapse = " + "))
+    input_ <- ifelse(is.null(controls), condition, paste0(append(controls, condition), collapse = " + "))
     design_matr <- as.formula(paste0("~ ", input_))
     dds_ <- DESeqDataSet(dds_, design = design_matr)
     levels <- levels(colData(dds_)[, condition])
