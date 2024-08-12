@@ -321,10 +321,14 @@ run_deseq <- function(
 
   # make a heatmap
   sign_genes <- rownames(res)[res$pvalue < pCutoff & abs(res$log2FoldChange) > FCcutoff]
-  heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
-  pdf(file.path(outpath, "dge_heatmap.pdf"))
-  print(heatmapP)
-  dev.off()
+  if (length(sign_genes) == 0) {
+    message("No significant genes found")
+  } else {
+    heatmapP <- plot_gene_heatmap(dds[sign_genes, ], title = name, annotations = contrast[1], normalize = "vst")
+    pdf(file.path(outpath, "dge_heatmap.pdf"))
+    print(heatmapP)
+    dev.off()
+  }
 
   # make gene list
   geneList <- get_fc_list(res)
@@ -358,7 +362,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   # expression analysis on each level within the condition column.
   counts <- assay(dds)
   lvls <- levels(colData(dds)[,column])
-  cond <- as.character(colData(dds)[,column])
+  cond <- as.data.frame(colData(dds)) %>% select(any_of(column, controls))
 
   # loop over condition levels in a one versus rest manner
   # ideally this for loop could be an apply statement with a custom function, 
@@ -369,12 +373,14 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     path <- file.path(outpath, paste0(column, "__",lvl,"_v_rest"))
     dir.create(path, showWarnings = F, recursive = T)
     # Set our OVR analysis
-    cond_ <- cond
+    cond_ <- cond[[column]]
     cond_[cond_ != lvl] <- "rest"
+    tmp_df <- cond
+    tmp_df[[column]] <- cond_
     
     # create temporary dds objects for analysis
-    input_ <- ifelse(is.null(controls), paste0(column), paste0(append(controls, column), collapse = " + "))
-    dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
+    input_ <- ifelse(is.null(controls), cond_, paste0(append(controls, cond_), collapse = " + "))
+    dds_ <- DESeqDataSetFromMatrix(counts, colData = DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
     dds_ <- DESeq(dds_)
     res <- results(dds_, contrast = c("condition", lvl, "rest"))
     

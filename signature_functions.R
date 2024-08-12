@@ -271,7 +271,6 @@ eigen_svdr <- function(df, outdir, pcs = 1, align = FALSE, ...) {
     return(eigengenes)
 }
 
-
 #' Function to calculate eigengenes by non-negative matrix factorization (WIP)
 #' Arguments:
 #' - df: data frame [samples x genes]
