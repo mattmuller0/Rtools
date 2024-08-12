@@ -362,8 +362,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
   # expression analysis on each level within the condition column.
   counts <- assay(dds)
   lvls <- levels(colData(dds)[,column])
-  coi <- c(column, controls)
-  cond <- as.data.frame(colData(dds)) %>% select(any_of(coi))
+  cond <- as.character(colData(dds)[,column])
 
   # loop over condition levels in a one versus rest manner
   # ideally this for loop could be an apply statement with a custom function, 
@@ -373,17 +372,21 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
     print(paste0("Testing ", column, " ", lvl, " versus rest"))
     path <- file.path(outpath, paste0(column, "__",lvl,"_v_rest"))
     dir.create(path, showWarnings = F, recursive = T)
+
     # Set our OVR analysis
-    cond_ <- cond[[column]]
+    cond_ <- cond
     cond_[cond_ != lvl] <- "rest"
-    tmp_df <- cond
-    tmp_df[[column]] <- cond_
+    dds$condition <- factor(cond_, levels = c("rest", lvl))
     
     # create temporary dds objects for analysis
-    input_ <- ifelse(is.null(controls), cond_, paste0(append(controls, cond_), collapse = " + "))
-    dds_ <- DESeqDataSetFromMatrix(counts, colData = DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
-    dds_ <- DESeq(dds_)
-    res <- results(dds_, contrast = c("condition", lvl, "rest"))
+    input_ <- ifelse(is.null(controls), column, paste0(append(controls, column), collapse = " + "))
+    fmla <- as.formula(paste0("~ ", input_))
+    design(dds) <- fmla
+
+    # dds_ <- DESeqDataSetFromMatrix(counts, colData <- DataFrame(condition = as.factor(cond_)), design <- as.formula(paste0("~ ", input_)))
+    # dds_ <- DESeq(dds_)
+    # res <- results(dds_, contrast = c("condition", lvl, "rest"))
+    res <- run_deseq(dds_, path, contrast = c("condition", lvl, "rest"))
     
     saveRDS(dds_, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
     write.csv(res, file=paste0(path, "/dge_results_", column,"__",lvl,"_v_rest.csv"))
