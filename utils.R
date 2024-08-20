@@ -48,6 +48,62 @@ message("
 #                                 CODE
 #
 ###########################################################################
+#' Function to install all required packages from a script
+#' Arguments:
+#'   - script: character, path to script
+#'   - 
+#' Returns:
+#'   - none
+install_packages_from_script <- function(script) {
+  # Read in the script
+  script <- readLines(script)
+  
+  # Get the packages
+  packages <- script[grepl('library', script)]
+  packages <- gsub('library\\(', '', packages)
+  packages <- gsub('suppressMessages\\(', '', packages)
+  packages <- gsub('\\)', '', packages)
+  packages <- gsub('"', '', packages)
+  packages <- gsub("'", '', packages)
+  packages <- gsub(' ', '', packages)
+
+  # if packages is empty, try to get the packages from the require statements
+  if (length(packages) == 0) {
+    packages <- script[grepl('require', script)]
+    packages <- gsub('require\\(', '', packages)
+    packages <- gsub('\\)', '', packages)
+    packages <- gsub('"', '', packages)
+    packages <- gsub("'", '', packages)
+    packages <- gsub(' ', '', packages)
+  }
+
+  # if that is still empty, try to get the packages from the pkg load statements
+  if (length(packages) == 0) {
+    packages <- script[grepl('package', script)]
+    packages <- gsub('package\\(', '', packages)
+    packages <- gsub('\\)', '', packages)
+    packages <- gsub('"', '', packages)
+    packages <- gsub("'", '', packages)
+    packages <- gsub(' ', '', packages)
+  }
+
+  # try to install the packages and
+  # if it fails, try to install with biocmanager
+  # if that fails, print the error
+  # capture the output
+  output <- capture.output({
+    for (pkg in packages) {
+      tryCatch({
+        install.packages(pkg, dependencies = TRUE, )
+      }, error = function(e) {print(e)})
+      tryCatch({
+        BiocManager::install(pkg, dependencies = TRUE, update = TRUE, ask = FALSE)
+      }, error = function(e) {print(e)})
+    }
+  })
+  return(output)
+}
+
 # Function to set up a directory for output
 # Arguments:
 #   - outpath: path to output directory
