@@ -380,7 +380,7 @@ ovr_deseq_results <- function(dds, column, outpath, controls = NULL, ...) {
 
     input_ <- ifelse(is.null(controls), "condition", paste0(append(controls, "condition"), collapse = " + "))
     fmla <- as.formula(paste0("~ ", input_))
-    design(dds) <- fmla
+    design(dds) <- fmlaconda 
     res <- run_deseq(dds, path, contrast = c("condition", lvl, "rest"))
     
     # saveRDS(dds, file=paste0(path, "/deseqDataset_", column,"__",lvl,"_v_rest.rds"))
