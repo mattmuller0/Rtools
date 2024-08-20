@@ -12,7 +12,6 @@
 # Notes:
 # general stats functions I use for stuff. most use SEs or DFs
 
-
 ###########################################################################
 #
 #                                 LIBRARIES
