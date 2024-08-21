@@ -4,10 +4,15 @@
 library(tidyverse)
 library(forcats)
 library(tibble)
-library(tableone)
 library(glue)
 library(tools)
 library(stringr)
+# Stats
+library(psych)
+library(tableone)
+library(ggsurvfit)
+library(survival)
+library(survminer)
 # Plotting
 library(ggplot2)
 library(ggpubr)
