@@ -36,8 +36,3 @@ source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/stats_function
 ###########################################################################
 # Add code here
 #
-
-# Function to run pca on a dds object
-# Arguments:
-#   - dds: dds object
-#   - group: character, column name of the group to use

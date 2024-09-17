@@ -442,33 +442,21 @@ plot_odds_volcano <- function(
     y = 'p.value',
     color = 'p.adj',
     labels = 'term',
-
     pCutoff = 0.05
     ) {
     odds_ratio_df$signf <- case_when(
-        odds_ratio_df[, 'p.adj.multi'] < pCutoff ~ 'p.adj.multi < 0.05',
-        odds_ratio_df[, 'p.adj'] < pCutoff ~ 'p.adj < 0.05',
+        odds_ratio_df[, 'p.adj.multi'] < pCutoff ~ glue('p.adj.multi < {pCutoff}'),
+        odds_ratio_df[, 'p.adj'] < pCutoff ~ glue('p.adj < {pCutoff}'),
         TRUE ~ 'NS'
     )
-    out <- ggplot(odds_ratio_df, 
-        aes(
-            x = !!sym(x), 
-            y = -log10(!!sym(y)), 
-            color = !!sym(color) < pCutoff
-            )) +
+    out <- ggplot(odds_ratio_df, aes(x = !!sym(x), y = -log10(!!sym(y)), color = !!sym(color) < pCutoff)) +
         geom_point(aes(color = signf)) +
-        # geom_hline(yintercept = -log10(0.05), linetype = 'dashed') +
         geom_vline(xintercept = 1, linetype = 'dashed') +
-        scale_color_manual(values = c('grey', 'red'), labels = c('NS', paste0(color, ' < 0.05'))) +
-
+        scale_color_manual(values = c('grey', 'red'), labels = c('NS', paste0(color, glue(' < {color}')))) +
         geom_text_repel(aes(label = !!sym(labels)), show.legend = FALSE) +
         theme_matt() +
         theme(legend.position = 'bottom') +
-        labs(
-            x = 'Odds Ratio',
-            y = '-log10(p-value)',
-            title = 'Odds Ratio Volcano Plot'
-        ) +
+        labs(x = 'Odds Ratio', y = '-log10(p-value)', title = 'Odds Ratio Volcano Plot') +
         # add text for the n up and n down
         annotate(
             geom = 'text',
@@ -502,6 +490,7 @@ plot_volcano <- function(
     color = 'padj',
     labels = 'rownames',
     title = NULL,
+    n_labels = TRUE,
 
     pCutoff = 0.05,
     fcCutOff = NULL,
@@ -532,44 +521,21 @@ plot_volcano <- function(
     }
 
     out <- ggplot(dge,
-        aes(
-            x = !!sym(x),
-            y = -log10(!!sym(y)),
-            color = signf
-            )) +
+        aes(x = !!sym(x), y = -log10(!!sym(y)), color = signf)) +
         geom_point() +
         scale_color_manual(values = c('grey', 'red')) +
-        geom_text_repel(
-          data = head(dge[order(dge[, y]), ], 100),
-          aes(label = !!sym(labels)),
-          show.legend = FALSE
-          ) +
+        geom_text_repel(data = head(dge[order(dge[, y]), ], 100), aes(label = !!sym(labels)), show.legend = FALSE) +
         theme_matt() +
         theme(legend.position = 'bottom') +
-        labs(
-            x = bquote(~Log[2]~'Fold Change'),
-            y = bquote(~-log[10]~'('~.(substitute(pvalue))~')'),
-            title = title,
-            color = NULL
-        ) +
-        # add text for the n up and n down
-        annotate(
-            geom = 'label',
-            x = xlim[2]*0.75,
-            y = ylim[2]*0.9,
-            label = paste0('n up: ', nrow(dge[dge[, x] > 0 & dge[, color] < pCutoff, ])),
-            size = 5,
-            color = 'black'
-        ) +
-        annotate(
-            geom = 'label',
-            x = xlim[1]*0.75,
-            y = ylim[2]*0.9,
-            label = paste0('n down: ', nrow(dge[dge[, x] < 0 & dge[, color] < pCutoff, ])),
-            size = 5,
-            color = 'black'
-        ) +
+        labs(x = bquote(~Log[2]~'Fold Change'), y = bquote(~-log[10]~'('~.(substitute(pvalue))~')'), title = title, color = NULL) +
         lims(x = xlim, y = ylim)
+
+      if (n_labels) {
+         out <- out + 
+        # add text for the n up and n down
+        annotate(geom = 'label', x = xlim[2]*0.75, y = ylim[2]*0.9, label = paste0('n up: ', nrow(dge[dge[, x] > 0 & dge[, color] < pCutoff, ])), size = 5, color = 'black') +
+        annotate(geom = 'label', x = xlim[1]*0.75, y = ylim[2]*0.9, label = paste0('n down: ', nrow(dge[dge[, x] < 0 & dge[, color] < pCutoff, ])), size = 5, color = 'black')
+      }
     return(out)
 }
 
@@ -588,11 +554,7 @@ plot_correlation_matrix <- function(cor_mat, title = '', xlab = '', ylab = '', x
   
   long_cor_mat <- cor_mat %>%
     rownames_to_column('var1') %>%
-    pivot_longer(
-      -var1,
-      names_to = 'var2',
-      values_to = 'cor'
-      )
+    pivot_longer(-var1, names_to = 'var2', values_to = 'cor')
   
     # set the order of the variables if given
     if (!is.null(x_order)) {
@@ -606,14 +568,7 @@ plot_correlation_matrix <- function(cor_mat, title = '', xlab = '', ylab = '', x
     geom_point(aes(size = abs(cor), fill = factor(sign(cor))), pch=21, alpha = 0.75) +
     scale_size_continuous(range = c(1, 8)) +
     scale_fill_manual(values = c("1" = "red", "-1" = "blue"), labels = c("1" = "Positive", "-1" = "Negative"))
-    # theme
-    labs(
-      title = title,
-      x = xlab,
-      y = ylab,
-      fill = 'Correlation Sign',
-      size = 'Correlation Magnitude'
-      )
+    labs(title = title, x = xlab, y = ylab, fill = 'Correlation Sign', size = 'Correlation Magnitude')
     return(plot)
 }
 
@@ -637,18 +592,14 @@ plot_forest <- function(
   ) {
   # Make the plot
   plot <- ggplot(df, aes(x = !!sym(x), y = !!sym(y), color = !!sym(color))) +
-    geom_point() +
-    geom_linerange(aes(ymin = !!sym(y) - !!sym(error), ymax = !!sym(y) + !!sym(error))) +
-    geom_hline(yintercept = 1, linetype = 'dashed') +
-    # theme
-    theme_bw() +
-    theme(legend.position = 'bottom') +
-    coord_flip() +
-    labs(
-      title = title,
-      x = xlab,
-      y = ylab
-      )
+  geom_point() +
+  geom_linerange(aes(ymin = !!sym(y) - !!sym(error), ymax = !!sym(y) + !!sym(error))) +
+  geom_hline(yintercept = 1, linetype = 'dashed') +
+  theme_bw() +
+  theme(legend.position = 'bottom') +
+  coord_flip() +
+  labs(title = title, x = xlab, y = ylab)
+  
   if (!is.null(facet)) {plot <- plot + facet_grid(facet)}
     return(plot)
   }
@@ -678,19 +629,9 @@ plot_stratified_forest <- function(
           geom_linerange(aes(xmin=!!sym(error_lower), xmax=!!sym(error_upper))) +
           geom_vline(xintercept = 1, linetype = "dashed") + 
           labs(title = NULL, x = "Hazard Ratio", y = NULL, color = NULL) +
-          facet_grid(
-              x~., 
-              scales = "free", 
-              switch = "y", 
-              space = "free_y"
-              ) +
+          facet_grid(x~., scales = "free", switch = "y", space = "free_y") +
           theme_bw() +
-          theme(
-              legend.position = "none",
-              strip.placement = "outside",
-              strip.background = element_blank(),
-              strip.text.y.left = element_text(angle = 0)
-              )
+          theme(legend.position = "none", strip.placement = "outside", strip.background = element_blank(), strip.text.y.left = element_text(angle = 0))
 
       # verify the needed columns are present
       if (!all(c(estimate, error_lower, error_upper, 'p.value', 'n') %in% colnames(df))) {
@@ -702,28 +643,14 @@ plot_stratified_forest <- function(
           geom_text(aes(x = 0, label = HR)) +
           geom_text(aes(x = 1, label = signif(p.value, 2))) +
           geom_text(aes(x = 2, label = n)) +
-          # stop the clipping
           coord_cartesian(xlim = c(-0.5, 2.5)) +
           labs(title = NULL, x = NULL, y = NULL)  +
-          facet_grid(
-              x~., 
-              scales = "free", 
-              switch = "y", 
-              space = "free_y"
-              ) +
-          scale_x_continuous(
-              breaks = c(0, 1, 2), labels = c("HR [95% CI]", "p-value", "n"),
-              expand = c(0, 0.1), position = "top"
-              ) +
+          facet_grid(x~., scales = "free", switch = "y", space = "free_y") +
+          scale_x_continuous(breaks = c(0, 1, 2), labels = c("HR [95% CI]", "p-value", "n"), expand = c(0, 0.1), position = "top") +
           theme_void() +
           theme(strip.text.y = element_blank(), axis.text.x = element_text())
 
-      p <- plot_grid(
-          p, p_right, 
-          ncol = 2, 
-          rel_widths = c(1, 0.75),
-          align = "h", axis = "bt"
-      )
+      p <- plot_grid(p, p_right, ncol = 2, rel_widths = c(1, 0.75), align = "h", axis = "bt")
 }
 
 #======================== Shortcut Objects ========================
