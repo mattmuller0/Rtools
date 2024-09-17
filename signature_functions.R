@@ -100,7 +100,7 @@ align_signature <- function(sig, dat, by = "mean"){
 #'   - ...: additional arguments to pass to stats functions
 #' Returns:
 #'   - list of stats results and plots
-compare_one_to_many <- function(df, col, cols, outdir, plot = TRUE, ...) {
+compare_one_to_many <- function(df, col, cols, outdir, plot = TRUE, method = "spearman", ...) {
     # set up output directory
     dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
     stats_list <- list()
@@ -118,9 +118,9 @@ compare_one_to_many <- function(df, col, cols, outdir, plot = TRUE, ...) {
         if (data_type %in% c("integer", "numeric")) {
             # numeric data
             stats_results <- df %>%
-                rstatix::cor_test(col, x, method = "spearman") %>%
+                rstatix::cor_test(col, x, method = method) %>%
                 dplyr::select(variable = var2, method = method, estimate = cor, p = p) # nolint
-            plot_results <- base_plot + geom_point() + geom_smooth(method = "lm") + stat_cor(method = "spearman")
+            plot_results <- base_plot + geom_point() + geom_smooth(method = "lm") + stat_cor(method = method)
         } else if (data_type %in% c("character", "factor")) {
             # get the number of unique values
             n_unique <- df %>% dplyr::pull(x) %>% na.omit() %>% unique() %>% length()
