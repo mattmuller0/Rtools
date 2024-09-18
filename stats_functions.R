@@ -31,55 +31,6 @@ source('https://raw.githubusercontent.com/mattmuller0/Rtools/main/general_functi
 #                                 CODE
 #
 ###########################################################################
-# Add code here
-#
-
-
-
-# CORRELATIONS
-# Function to calculate correlations between two SE objects
-# Arguments:
-#   - SE1: SummarizedExperiment object
-#   - SE2: SummarizedExperiment object
-#   - pval_filter: numeric, p-value threshold for filtering
-#   - rval_filter: numeric, r-value threshold for filtering
-#   - zval_filter: numeric, z-value threshold for filtering
-#   - cor_method: character, correlation method to use
-# Returns:
-#   - correlations: data.frame, correlations between SE1 and SE2
-sampleCorrelations <- function(
-    SE1, SE2,
-    pval_filter = 1,
-    rval_filter = NA,
-    zval_filter = NA,
-    
-    cor_method = 'pearson'
-) {
-  # SE1 <- SE1[rownames(SE1) %in% rownames(SE2), colnames(SE1) %in% colnames(SE2)]
-  # SE2 <- SE2[rownames(SE2) %in% rownames(SE1), colnames(SE2) %in% colnames(SE1)]
-  
-  
-  # This needs to be done in an apply loop of some sort for each row
-  # also, make sure it's paired!!
-  cor.test_ <- function(x) {cor.test(x, method=cor_method)}
-  correlations <- mapply(cor.test, SE1, SE2)
-  # correlations <- correlations[,correlations[3, ] <= pval_filter]
-  # if (!is.na(rval_filter) & rval_filter >= 0) {correlations <- correlations[,correlations[4, ] >= rval_filter]}
-  # if (!is.na(rval_filter) & rval_filter < 0) {correlations <- correlations[,correlations[4, ] < rval_filter]}
-  # if (!is.na(zval_filter) & zval_filter >= 0) {correlations <- correlations[,correlations[1, ] >= zval_filter]}
-  # if (!is.na(zval_filter) & zval_filter < 0) {correlations <- correlations[,correlations[1, ] < zval_filter]}
-  # So this next bit is cause I am using mapply earlier, and clearly not processing data
-  # as well as I could. This is a clear bandaid over the issue but hey it works lol
-  rownames_ <- colnames(correlations)
-  correlations <- as.data.frame(t(correlations))
-  correlations <- sapply(correlations[-9], unlist) %>% as.data.frame()
-  # Idk what is happening here but I'm doubling the number of rows
-  # rownames(correlations) <- rownames_
-  return(correlations)
-}
-
-
-
 # Function to make a table 1
 # Arguments:
 #   - data: data.frame, data to make table 1 from
@@ -118,15 +69,6 @@ stats_table <- function(
   
   # Make a nice table 1
   table1 <- do.call(print, c(list(table1), printArgs))
-
-  # Fix the table 1 by adding norm to the test column
-  # table1 <- table1 %>% 
-  #   mutate(
-  #     test = case_when(
-  #       p != '' & test != 'nonnorm' ~ 'norm',
-  #       TRUE ~ test
-  #     )
-  #     )
   return(table1)
 }
 
@@ -161,9 +103,7 @@ hypergeometric_scoring <- function(
         }
 
     # error handling on the method
-    if (method %in% c('fisher', 'chisq')) {
-        method <- method
-    } else {
+    if (!method %in% c('fisher', 'chisq')) {
         stop('method must be either fisher or chisq')
     }
     
@@ -221,17 +161,16 @@ log_rank_test <- function(
 
     # make sure censor and time are in the data
     if (!(time %in% colnames(data)) | !(censor %in% colnames(data))) {
-      message(glue('time column {time} or censor column {censor} not in data'))
+      message(glue('Missing either time or censor column for {censor}'))
       next
     }
     
     # Loop through each comparison group
-    for (i in 1:length(comparisons)) {
+    for (i in seq_len(comparisons)) {
       # Subset the data for the current comparison group
-      
+      comparison <- comparisons[i]
       # Perform the log rank test
-      # print(comparisons[i])
-      fit <- survdiff(Surv(data[[time]], data[[censor]]) ~ data[[comparisons[i]]])
+      fit <- survdiff(Surv(data[[time]], data[[censor]]) ~ data[[comparison]])
       p_value <- fit$p
       
       # Store the p-value in the p_values dataframe
@@ -253,9 +192,6 @@ log_rank_test <- function(
 # Returns:
 #   - cor_mat: data.frame, correlation matrix
 correlation_matrix <- function(data, vars1, vars2, method = 'pearson', use = 'pairwise.complete.obs', ...) {
-  # Subset the data
-  # data <- data[, c(vars1, vars2)]
-  
   # make a placeholder for the correlation matrix
   cor_mat <- data.frame()
   p_mat <- data.frame()
@@ -294,13 +230,9 @@ survival_analysis <- function(
   censors, 
   outdir,
 
-  image_type = 'png',
+  image_type = 'pdf',
   censor_prefix = 'censor_',
-  time_prefix = 'time_to_',
-
-  survfit_args = list(),
-  survdiff_args = list(),
-  coxph_args = list()
+  time_prefix = 'time_to_'
   ) {
   require(ggsurvfit)
   require(survival)
@@ -327,31 +259,21 @@ survival_analysis <- function(
   for (idx in 1:length(censors)) {
     time_var <- time_vars[idx]
     censor <- censors[idx]
+    surv <- Surv(df[[time_var]], df[[censor]])
     cond_ <- df[[condition]]
 
-    surv_obj <- survfit(Surv(df[[time_var]], df[[censor]]) ~ cond_)
-    surv_diff <- survdiff(Surv(df[[time_var]], df[[censor]]) ~ cond_)
-    coxmodel <- coxph(Surv(df[[time_var]], df[[censor]]) ~ cond_)
+    surv_obj <- survfit(surv ~ cond_)
+    surv_diff <- survdiff(surv ~ cond_)
+    coxmodel <- coxph(surv ~ cond_)
 
     surv_plot <- ggsurvfit(surv_obj) +
       coord_cartesian(clip = "off") +
       add_confidence_interval(alpha=0.1) +
       theme_classic(18) + 
       theme(legend.position = "top") +
-      # add padding to axis for the risk table
       lims(x = c(0, max(surv_obj$time)+100)) +
-      labs(
-        x = 'Time (days)',
-        title = glue('Survival Analysis for {censor} (n={sum(surv_obj$n)})')
-        ) +
-      # add text for coxmodel
-      annotate(
-        "text", 
-        x = max(surv_obj$time)*0.75, 
-        y = 1, 
-        label = paste0('HR = ', signif(exp(coef(coxmodel)), 3), '; p = ', signif(summary(coxmodel)$coefficients[5], 1)), size = 7
-      ) +
-      # make the y axis title readable
+      labs(x = 'Time (days)', title = glue('Survival Analysis for {censor} (n={sum(surv_obj$n)})')) +
+      annotate("text", x = max(surv_obj$time)*0.75, y = 1, label = paste0('HR = ', signif(exp(coef(coxmodel)), 3), '; p = ', signif(summary(coxmodel)$coefficients[5], 1)), size = 7) +
       theme(axis.title.y = element_text(angle = 90, vjust = 0.5))
 
       # add the surv_plot to the list
@@ -359,14 +281,15 @@ survival_analysis <- function(
       ggsave(filename = file.path(outdir, 'survival_plots', glue('survival_plot_{censor}.{image_type}')), plot = surv_plot)
 
       # make a dataframe of the OR & pvalue and HR & pvalues
-      HR_list[[censor]] <- data.frame(
+      o <- data.frame(
         logrank_chisq = signif(surv_diff$chisq, 4),
         logrank_pvalue = signif(surv_diff$pvalue, 4),
-        HR = signif(exp(coef(coxmodel)), 4),
-        HR_ci_lower = signif(exp(confint(coxmodel))[1], 4),
-        HR_ci_upper = signif(exp(confint(coxmodel))[2], 4),
-        HR_pvalue = signif(summary(coxmodel)$coefficients[5], 4)
+        hazard_ratio = signif(exp(coef(coxmodel)), 4),
+        ci_lower = signif(exp(confint(coxmodel))[1], 4),
+        ci_upper = signif(exp(confint(coxmodel))[2], 4),
+        hr_pvalue = signif(summary(coxmodel)$coefficients[5], 4)
       )
+      HR_list[[censor]] <- o
   }
   HR_df <- do.call(rbind, HR_list)
   write.csv(HR_df, file.path(outdir, 'HR_df.csv'))
@@ -562,55 +485,6 @@ hazard_ratios_table <- function(
   return(HR_df)
   }
 
-# Function to a glm trend table
-# Arguments:
-#   - data: data.frame, data to make trend table from
-#   - x: character, x variable
-#   - ys: character, y variables
-#   - verbose: logical, whether to print model summaries
-#   - ...: other arguments to pass to glm
-# Returns:
-#   - out_dat: data.frame, trend table
-trend_table <- function(data, x, ys, verbose = FALSE, ...) {
-    # make an empty dataframe
-    out_dat <- data.frame()
-    for (y in ys) {
-            # check if there are any NAs in the data
-            # and if so, remove them
-            # if (any(is.na(data[, c(x, y)]))) {
-            #     tmpDat <- data %>% drop_na(any_of(c(x, y)))
-            #     if (verbose) {
-            #         print(paste0('Removed NAs from ', y))
-            #         print(dim(data))
-            #     }
-            # }
-
-            # make the model
-            model <- glm(
-                as.formula(paste0(y, ' ~ ', x)), 
-                data = data %>% drop_na(any_of(c(x, y))), 
-                ...
-                )
-            if (verbose) {
-                print(glue('Model summary for {y} ~ {x}'))
-                print(summary(model))
-            }
-            
-            # tidy the model
-            tidyModel <- broom::tidy(model) %>%
-                mutate(
-                    variable = y,
-                    n = nrow(data %>% drop_na(any_of(c(x, y))))
-                ) %>%
-                filter(term == x) %>%
-                dplyr::select(variable, n, estimate, std.error, statistic, p.value)
-            # add to the out_dat
-            out_dat <- rbind(out_dat, tidyModel)
-    }
-    return(out_dat)
-}
-
-
 # Function to make filtered hazard ratio tables
 filtered_hazard_ratio_table <- function(
   data, 
@@ -741,4 +615,93 @@ filtered_hazard_ratio_table <- function(
   
 #   # View results
 #   return(res)
+# }
+
+# # Function to a glm trend table
+# # Arguments:
+# #   - data: data.frame, data to make trend table from
+# #   - x: character, x variable
+# #   - ys: character, y variables
+# #   - verbose: logical, whether to print model summaries
+# #   - ...: other arguments to pass to glm
+# # Returns:
+# #   - out_dat: data.frame, trend table
+# trend_table <- function(data, x, ys, verbose = FALSE, ...) {
+#     # make an empty dataframe
+#     out_dat <- data.frame()
+#     for (y in ys) {
+#             # check if there are any NAs in the data
+#             # and if so, remove them
+#             # if (any(is.na(data[, c(x, y)]))) {
+#             #     tmpDat <- data %>% drop_na(any_of(c(x, y)))
+#             #     if (verbose) {
+#             #         print(paste0('Removed NAs from ', y))
+#             #         print(dim(data))
+#             #     }
+#             # }
+
+#             # make the model
+#             model <- glm(
+#                 as.formula(paste0(y, ' ~ ', x)), 
+#                 data = data %>% drop_na(any_of(c(x, y))), 
+#                 ...
+#                 )
+#             if (verbose) {
+#                 print(glue('Model summary for {y} ~ {x}'))
+#                 print(summary(model))
+#             }
+            
+#             # tidy the model
+#             tidyModel <- broom::tidy(model) %>%
+#                 mutate(
+#                     variable = y,
+#                     n = nrow(data %>% drop_na(any_of(c(x, y))))
+#                 ) %>%
+#                 filter(term == x) %>%
+#                 dplyr::select(variable, n, estimate, std.error, statistic, p.value)
+#             # add to the out_dat
+#             out_dat <- rbind(out_dat, tidyModel)
+#     }
+#     return(out_dat)
+# }
+
+# # CORRELATIONS
+# # Function to calculate correlations between two SE objects
+# # Arguments:
+# #   - SE1: SummarizedExperiment object
+# #   - SE2: SummarizedExperiment object
+# #   - pval_filter: numeric, p-value threshold for filtering
+# #   - rval_filter: numeric, r-value threshold for filtering
+# #   - zval_filter: numeric, z-value threshold for filtering
+# #   - cor_method: character, correlation method to use
+# # Returns:
+# #   - correlations: data.frame, correlations between SE1 and SE2
+# sampleCorrelations <- function(
+#     SE1, SE2,
+#     pval_filter = 1,
+#     rval_filter = NA,
+#     zval_filter = NA,
+    
+#     cor_method = 'pearson'
+# ) {
+#   # SE1 <- SE1[rownames(SE1) %in% rownames(SE2), colnames(SE1) %in% colnames(SE2)]
+#   # SE2 <- SE2[rownames(SE2) %in% rownames(SE1), colnames(SE2) %in% colnames(SE1)]
+  
+#   # This needs to be done in an apply loop of some sort for each row
+#   # also, make sure it's paired!!
+#   cor.test_ <- function(x) {cor.test(x, method=cor_method)}
+#   correlations <- mapply(cor.test, SE1, SE2)
+#   # correlations <- correlations[,correlations[3, ] <= pval_filter]
+#   # if (!is.na(rval_filter) & rval_filter >= 0) {correlations <- correlations[,correlations[4, ] >= rval_filter]}
+#   # if (!is.na(rval_filter) & rval_filter < 0) {correlations <- correlations[,correlations[4, ] < rval_filter]}
+#   # if (!is.na(zval_filter) & zval_filter >= 0) {correlations <- correlations[,correlations[1, ] >= zval_filter]}
+#   # if (!is.na(zval_filter) & zval_filter < 0) {correlations <- correlations[,correlations[1, ] < zval_filter]}
+#   # So this next bit is cause I am using mapply earlier, and clearly not processing data
+#   # as well as I could. This is a clear bandaid over the issue but hey it works lol
+#   rownames_ <- colnames(correlations)
+#   correlations <- as.data.frame(t(correlations))
+#   correlations <- sapply(correlations[-9], unlist) %>% as.data.frame()
+#   # Idk what is happening here but I'm doubling the number of rows
+#   # rownames(correlations) <- rownames_
+#   return(correlations)
 # }

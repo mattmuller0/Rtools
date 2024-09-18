@@ -31,7 +31,7 @@ percentGenesDetected <- function(dds, min_value = 0) {
   require(tidyverse)
   require(ggplot2)
   
-  counts <- dds %>% assay()
+  counts <- assay(dds)
   percent_genes_detected <- rowMeans(counts > min_value)
   return(percent_genes_detected)
 }
@@ -71,11 +71,9 @@ rna_preprocessing <- function(
     dds <- dds[keep,]
     after_plot <- plot_library_depth(dds, "Library Depth Postfiltering", bins = 100)
     depth_plots <- plot_grid(before_plot, after_plot, ncol = 2)
-    # ggsave(file.path(outpath, "library_depth.pdf"), depth_plots)
   }
   if (is.na(depth_filter)) {
     before_plot <- plot_library_depth(dds, "Library Depth Prefiltering", bins = 100)
-    # ggsave(file.path(outpath, "library_depth.pdf"), before_plot)
   }
   
   # Take a look at library size
@@ -86,11 +84,9 @@ rna_preprocessing <- function(
     dds <- dds[,keep]
     after_plot <- plot_library_size(dds, "Library Size Postfiltering", bins = 10)
     size_plots <- plot_grid(before_plot, after_plot, ncol = 2)
-    # ggsave(file.path(outpath, "library_size.pdf"), size_plots)
   }
   if (is.na(size_filter)) {
     before_plot <- plot_library_size(dds, "Library Size Prefiltering", bins = 10)
-    # ggsave(file.path(outpath, "library_size.pdf"), before_plot)
   }
 
   # Take a look at percent of genes detected
@@ -101,11 +97,9 @@ rna_preprocessing <- function(
     dds <- dds[keep,]
     after_plot <- plot_percent_genes_detected(dds, "Percent of Genes Detected Postfiltering")
     percent_plots <- plot_grid(before_plot, after_plot, ncol = 2)
-    # ggsave(file.path(outpath, "percent_genes_detected.pdf"), percent_plots)
   }
   if (is.na(percent_filter)) {
     before_plot <- plot_percent_genes_detected(dds, "Percent of Genes Detected Prefiltering")
-    # ggsave(file.path(outpath, "/percent_genes_detected.pdf"), before_plot)
   }
 
   # save all the plots together
@@ -114,21 +108,17 @@ rna_preprocessing <- function(
   
   # Make a tree
   message("Checking hierarchical clustering")
-  counts <- dds %>% normal() %>% t() %>% scale()
+  counts <- scale(t(normal(dds)))
   sampleTree = hclust(dist(counts))
   ggtree(sampleTree) + 
     geom_tiplab(size = 2, hjust = -0.1) + 
     theme_tree2() +
-    labs(title = "Sample clustering to detect outliers", 
-         subtitle = "",
-         x = "",
-         y = "")
+    labs(title = "Sample clustering to detect outliers", subtitle = "", x = "", y = "")
   ggsave(file.path(outpath, "sample_outliers.pdf"))
 
   # PCA Plot
   message("Checking PCA")
-  # get the variance stabilized counts
-  counts <- dds %>% vst() %>% assay() %>% t() %>% scale()
+  counts <- scale(t(assay(vst(dds))))
   pca <- prcomp(counts)
   if (is.null(group)) {pca_plot <- ggbiplot(pca, ellipse = TRUE, var.axes = FALSE)}
   if (!is.null(group)) {pca_plot <- ggbiplot(pca, groups = colData(dds)[, group], ellipse = TRUE, var.axes = FALSE)}
@@ -213,21 +203,18 @@ filter_edgeR <- function(
 
   # Make a tree
   message("Checking hierarchical clustering")
-  counts <- dds %>% assay() %>% t() %>% scale()
+  counts <- scale(t(assay(vst(dds))))
   sampleTree = hclust(dist(counts))
   ggtree(sampleTree) + 
     geom_tiplab(size = 2, hjust = -0.1) + 
     theme_tree2() +
-    labs(title = "Sample clustering to detect outliers", 
-         subtitle = "",
-         x = "",
-         y = "")
+    labs(title = "Sample clustering to detect outliers", subtitle = "", x = "", y = "")
   ggsave(file.path(outpath, "sample_outliers.pdf"), dpi = 300)
 
   # PCA Plot
   message("Checking PCA")
   # get the variance stabilized counts
-  counts <- dds %>% vst() %>% assay() %>% t() %>% scale()
+  counts <- scale(t(assay(vst(dds))))
   pca <- prcomp(counts)
   if (is.null(group)) {pca_plot <- ggbiplot(pca, ellipse = TRUE, var.axes = FALSE)}
   if (!is.null(group)) {pca_plot <- ggbiplot(pca, groups = colData(dds)[, group], ellipse = TRUE, var.axes = FALSE)}
@@ -258,7 +245,7 @@ filter_edgeR <- function(
 # Returns:
 #   dds: DESeq2 object
 #   plot of wbc contamination
-detect_wbc <- function(dds, outpath, group = NULL) {
+detect_wbc <- function(dds, outpath, group = NULL, normalize = "mor") {
   require(DESeq2)
   require(SummarizedExperiment)
   require(tidyverse)
@@ -271,14 +258,10 @@ detect_wbc <- function(dds, outpath, group = NULL) {
   dds_before <- dds
 
   # get the counts
-  counts <- counts(dds, normalized = TRUE)
-
-  # ptprc
-  ptprc <- counts['PTPRC',]
-  itga2b <- counts['ITGA2B',]
+  counts <- normalize_counts(dds, normalize)
 
   # get the ratio
-  ratio <- ptprc/itga2b
+  ratio <- counts['PTPRC',] / counts['ITGA2B',]
 
   # get the group
   tryCatch(
@@ -288,7 +271,6 @@ detect_wbc <- function(dds, outpath, group = NULL) {
       grouping <- ratio > 1
     }
   )
-  grouping <- colData(dds)[,group]
   IDs <- rownames(colData(dds))
 
   plotting_df <- data.frame(IDs, ratio, grouping)
@@ -301,12 +283,9 @@ detect_wbc <- function(dds, outpath, group = NULL) {
       theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
       geom_text_repel(label = IDs, size = 5, show.legend = FALSE)
 
-  # save the plot
   ggsave(file.path(outpath, "wbc_contamination.pdf"), plot)
-
-  # save the dds object
-  message("Saving dds object")
-  saveRDS(dds, file = file.path(outpath,"dds.rds"))
+  write.csv(plotting_df, file.path(outpath, "wbc_contamination.csv"))
+  saveRDS(dds, file.path(outpath,"dds.rds"))
 
   return(dds)
 }
