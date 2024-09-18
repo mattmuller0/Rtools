@@ -386,10 +386,8 @@ hazard_ratios_table <- function(
     df[, condition ] <- scale(df[, condition ])
   }
 
-
   # make a list to store the survival plots
   HR_list <- list()
-  
   if (!ovr) {
   # loop over the censors
     for (idx in 1:length(censors)) {
@@ -415,10 +413,10 @@ hazard_ratios_table <- function(
       HR_list[[censor]] <- data.frame(
             censor = censor,
             condition = condition,
-            HR = signif(exp(tidy_cox[1, 'estimate']), 4),
-            HR_ci_lower = signif(exp(tidy_confint[1, 1]), 4),
-            HR_ci_upper = signif(exp(tidy_confint[1, 2]), 4),
-            HR_pvalue = signif(tidy_cox[1, 'p.value'], 4)
+            hazard_ratio = signif(exp(tidy_cox[1, 'estimate']), 4),
+            ci_lower = signif(exp(tidy_confint[1, 1]), 4),
+            ci_upper = signif(exp(tidy_confint[1, 2]), 4),
+            pvalue = signif(tidy_cox[1, 'p.value'], 4)
           )
     }
   } else {
@@ -462,9 +460,9 @@ hazard_ratios_table <- function(
             censor = censor,
             condition = x,
             HR = unlist(signif(exp(tidy_cox[1, 'estimate']), 4)),
-            HR_ci_lower = signif(exp(tidy_confint[1, 1]), 4),
-            HR_ci_upper = signif(exp(tidy_confint[1, 2]), 4),
-            HR_pvalue = signif(tidy_cox[1, 'p.value'], 4)
+            ci_lower = signif(exp(tidy_confint[1, 1]), 4),
+            ci_upper = signif(exp(tidy_confint[1, 2]), 4),
+            pvalue = signif(tidy_cox[1, 'p.value'], 4)
           )
 
           final <- rbind(final, out)
