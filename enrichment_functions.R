@@ -258,11 +258,17 @@ gsea_analysis <- function(
     dplyr::select(gs_name, gene_symbol)
   gse_reactome <- GSEA(geneList, TERM2GENE = reactome_t2g, pvalueCutoff = Inf)
 
+  kegg_t2g <- msigdb %>%
+    filter(gs_cat == "C2" & gs_subcat == "CP:KEGG") %>%
+    dplyr::select(gs_name, gene_symbol)
+  gse_kegg <- GSEA(geneList, TERM2GENE = kegg_t2g, pvalueCutoff = Inf)
+  
   # gse list to loop over
   gse_list <- list(
     GO = gse_go,
     H = gse_h,
-    REACTOME = gse_reactome
+    REACTOME = gse_reactome,
+    KEGG = gse_kegg
     )
 
   for (idx in seq_along(gse_list)) {
