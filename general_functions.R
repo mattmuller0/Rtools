@@ -102,11 +102,7 @@ add_missing_rows <- function(
     sorted = TRUE ) {
   missingRowNames <-  rows[which(!rows %in% rownames(df))]
   print(missingRowNames)
-  df_tmp <- as.data.frame(matrix(0,
-                                 nrow = length(missingRowNames),
-                                 ncol = dim(df)[2]
-  )
-  )
+  df_tmp <- as.data.frame(matrix(0, nrow = length(missingRowNames), ncol = dim(df)[2]))
   # print(dim(df_tmp))
   # print(length(missingRowNames))
   colnames(df_tmp) <- colnames(df)
@@ -131,8 +127,7 @@ make_se <- function(countsMatr, colData) {
   require(SummarizedExperiment)
   require(BiocGenerics)
   sample_ids <- intersect(colnames(countsMatr), row.names(colData))
-  se <- SummarizedExperiment(assays = list(counts = as.matrix(countsMatr[,sample_ids])), 
-                             colData = colData[sample_ids,])
+  se <- SummarizedExperiment(assays = list(counts = as.matrix(countsMatr[,sample_ids])), colData = colData[sample_ids,])
   return(se)
 }
 

@@ -295,7 +295,6 @@ stratified_ora <- function(
   ...
   ) {
   require(clusterProfiler)
-  require(enrichR)
   require(org.Hs.eg.db)
 
   # get the up and down genes
@@ -316,11 +315,8 @@ stratified_ora <- function(
 
   out <- purrr::map_dfr(
     c("up", "down"), ~{
-      if (.x == "up") {
-        enr <- enr_fn(up_genes)
-      } else {
-        enr <- enr_fn(down_genes)
-      }
+      enr <- if (.x == "up") enr_fn(up_genes) else enr_fn(down_genes)
+      print(enr)
 
       if (is.null(enr)) {
         message("No results found for ", .x)
