@@ -88,8 +88,6 @@ align_signature <- function(sig, dat, by = "mean"){
     return(sig * sign(aln))
 }
 
-
-
 #======================== Testing Functions ========================
 #' Function to compare one column to many columns
 #' Arguments:
