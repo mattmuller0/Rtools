@@ -99,8 +99,8 @@ olink_pca_outliers <- function(data, outdir, outlierDefX = 2.5, outlierDefY = 4,
     # outliers
     outliers <- lapply(pca, function(x) {x$data}) %>%
         bind_rows() %>%
-        filter(Outlier == 1) %>% 
-        dplyr::select(SampleID, Outlier, Panel)
+        filter(Outlier == 1) %>%
+        { if (byPanel) dplyr::select(., SampleID, Outlier, Panel) else dplyr::select(., SampleID, Outlier) }
     write.csv(outliers, glue('{outdir}/pca_outliers.csv'), row.names = F)
 
     out <- list(pca = pca, outliers = outliers)
@@ -126,8 +126,8 @@ olink_umap_outliers <- function(data, outdir, outlierDefX = 2.5, outlierDefY = 4
     # outliers
     outliers <- lapply(umap, function(x) {x$data}) %>%
         bind_rows() %>%
-        filter(Outlier == 1) %>% 
-        dplyr::select(SampleID, Outlier, Panel)
+        filter(Outlier == 1) %>%
+        { if (byPanel) dplyr::select(., SampleID, Outlier, Panel) else dplyr::select(., SampleID, Outlier) }
     write.csv(outliers, glue('{outdir}/umap_outliers.csv'), row.names = F)
 
     out <- list(umap = umap, outliers = outliers)
