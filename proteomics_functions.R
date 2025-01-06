@@ -175,11 +175,8 @@ olink_lod_qc <- function(data, outdir, plot = TRUE) {
 olink_count_table <- function(data, sampleID = 'SampleID', assay = 'Assay', value = 'NPX') {
     # get the count table
     count_table <- data %>%
-        # get the sample ID, assay, and value
-        dplyr::select(sampleID, assay, value) %>%
-        # pivot to wide
+        dplyr::select(all_of(sampleID, assay, value)) %>%
         tidyr::pivot_wider(names_from = assay, values_from = value) %>%
-        # remove the sample ID
         column_to_rownames(sampleID)
     return(count_table)
 }
